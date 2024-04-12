@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Energy Plan Scraper</title>
+</head>
+<body>
+    <h1>Energy Plan Scraper</h1>
+    <form method="post">
+        <label for="url">Enter the URL:</label>
+        <input type="text" id="url" name="url" value="{{ default_url }}">
+        <input type="submit" value="Scrape">
+    </form>
+    {% if data_table %}
+        <div>{{ data_table|safe }}</div>
+        <a href="/download-csv?data_csv={{ data_csv|urlencode }}">Download CSV</a>
+    {% endif %}
+</body>
+</html>
