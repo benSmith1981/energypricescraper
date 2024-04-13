@@ -74,7 +74,7 @@ def navigate_and_scrape(url):
         return None
 
     try:
-        WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.NAME, "address.id")))
+        WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.NAME, "address.id")))
         address_dropdown = driver.find_element(By.NAME, "address.id")
         address_dropdown.click()
         address_dropdown.find_elements(By.TAG_NAME, 'option')[1].click()
@@ -85,6 +85,7 @@ def navigate_and_scrape(url):
         return None
 
     try:
+        WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, "//label[@for='isBillPayerConfirmed']")))
         confirm_button = driver.find_element(By.XPATH, "//label[@for='isBillPayerConfirmed']")
         confirm_button.click()
         driver.find_element(By.XPATH, "//button[contains(text(), 'Continue')]").click()
@@ -116,6 +117,7 @@ def navigate_and_scrape(url):
         return None
 
     try:
+        WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Continue')]")))
         continue_button_email = driver.find_element(By.XPATH, "//button[contains(text(), 'Continue')]")
         continue_button_email.click()
         print("Final continue button clicked.")
@@ -187,7 +189,13 @@ def scrape_data(driver):
         rates = card.select_one('div.type-body-sm.styles-module__chargesGridContainerStyle___F3ffm')
         unit_rates = [rate.text.strip('p') for rate in rates.find_all('div', class_='type-bold-sm')]
         early_exit_fee = card.select_one('div.styles-module__earlyExitFee___-Jc4E').text.split(': ')[1]
-        annual_cost = card.select_one('div.styles-module__priceStyle___x0We9').text.strip('£').replace(',', '')
+        # Extracting the 'Estimated annual cost' using the specified element
+        # price_title = card.select_one('div.styles-module__priceCardTitle___KPICe')
+        # if "Estimated annual cost" in price_title.text:
+        #     annual_cost_value = card.select_one('div.styles-module__priceStyle___x0We9.type-heading-sm').text.strip('£').replace(',', '')
+        # else:
+        #     annual_cost_value = "N/A"  # If 'Estimated annual cost' is not found, mark it as 'N/A'
+        annual_cost_value = card.select('div.styles-module__priceStyle___x0We9.type-heading-sm')[1].text.strip('£').replace(',', '')
 
         data_list.append({
             'Company': company,
@@ -196,7 +204,7 @@ def scrape_data(driver):
             'Unit Rate Elec (kWh)': unit_rates[2],
             'Standing Charge Elec (Day)': unit_rates[3],
             'Early Exit Fee': early_exit_fee,
-            'Estimated Annual Cost': annual_cost
+            'Estimated Annual Cost': annual_cost_value
         })
 
     return pd.DataFrame(data_list)
