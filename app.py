@@ -74,7 +74,7 @@ def navigate_and_scrape(url):
         return None
 
     try:
-        WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.NAME, "address.id")))
+        WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.NAME, "address.id")))
         address_dropdown = driver.find_element(By.NAME, "address.id")
         address_dropdown.click()
         address_dropdown.find_elements(By.TAG_NAME, 'option')[1].click()
@@ -85,7 +85,7 @@ def navigate_and_scrape(url):
         return None
 
     try:
-        WebDriverWait(driver, 4).until(EC.presence_of_element_located((By.XPATH, "//label[@for='isBillPayerConfirmed']")))
+        WebDriverWait(driver, 1).until(EC.presence_of_element_located((By.XPATH, "//label[@for='isBillPayerConfirmed']")))
         confirm_button = driver.find_element(By.XPATH, "//label[@for='isBillPayerConfirmed']")
         confirm_button.click()
         driver.find_element(By.XPATH, "//button[contains(text(), 'Continue')]").click()
@@ -161,7 +161,7 @@ def navigate_and_scrape(url):
 
     try:
         for _ in range(4):
-            see_more_button = WebDriverWait(driver, 2).until(
+            see_more_button = WebDriverWait(driver, 3).until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
             )
             # Scroll to the bottom of the page
@@ -171,7 +171,7 @@ def navigate_and_scrape(url):
     except Exception as e:
         print("Failed to click See more results button:", e)
 
-    time.sleep(5)  # Wait for the results page to load completely
+    time.sleep(3)  # Wait for the results page to load completely
 
     data = scrape_data(driver)
     driver.quit()
