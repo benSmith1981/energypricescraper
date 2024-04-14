@@ -6,3 +6,4 @@ beautifulsoup4==4.9.3
 selenium==3.141.0
 requests==2.25.1
 webdriver-manager==3.4.2
+flask_cors
