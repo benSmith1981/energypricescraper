@@ -34,16 +34,163 @@ def clear_cache(driver):
     clear_data_button.send_keys(Keys.ENTER)
 
 def setup_driver():
-    """Setup Chrome WebDriver with necessary options."""
+    """Setup Chrome WebDriver with necessary options, adjusting for Heroku and local environments."""
     chrome_options = Options()
-    # chrome_options.add_argument("--incognito")  # Open the browser in incognito mode.
-    # chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("--window-size=1920x1080")
-    path_to_chromedriver = '/Users/bensmith/Downloads/chromedriver-mac-x64/chromedriver'
-    driver = webdriver.Chrome(executable_path=path_to_chromedriver, options=chrome_options)
+
+    # Determine if the code is running on Heroku
+    if 'DYNO' in os.environ:
+        # On Heroku, use the environment variables and headless mode
+        chrome_options.binary_location = os.getenv('GOOGLE_CHROME_BIN')
+        chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--disable-gpu")
+        driver = webdriver.Chrome(executable_path=os.getenv('CHROMEDRIVER_PATH'), chrome_options=chrome_options)
+    else:
+        # Local executable path for development (update the path to where your chromedriver is located)
+        path_to_chromedriver = '/Users/bensmith/Downloads/chromedriver-mac-x64/chromedriver'
+        driver = webdriver.Chrome(executable_path=path_to_chromedriver, options=chrome_options)
+
     return driver
+
+# def setup_driver():
+#     """Setup Chrome WebDriver with necessary options."""
+#     chrome_options = Options()
+#     # chrome_options.add_argument("--incognito")  # Open the browser in incognito mode.
+#     # chrome_options.add_argument("--headless")
+#     chrome_options.add_argument("--no-sandbox")
+#     chrome_options.add_argument("--disable-dev-shm-usage")
+#     chrome_options.add_argument("--window-size=1920x1080")
+#     path_to_chromedriver = '/Users/bensmith/Downloads/chromedriver-mac-x64/chromedriver'
+    
+#     driver = webdriver.Chrome(executable_path=path_to_chromedriver, options=chrome_options)
+#     return driver
+
+def navigate_and_scrapeNEW(url, postcode):
+    driver = setup_driver()
+    driver.get(url)
+    print("Navigated to URL:", url)
+
+    try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+        print("Page loaded successfully.")
+    except Exception as e:
+        print("Error loading page:", e)
+        driver.quit()
+        return None
+
+    # Accept cookies
+    try:
+        cookie_accept_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(),'Accept')]"))
+        )
+        cookie_accept_button.click()
+        print("Cookie overlay accepted.")
+    except Exception as e:
+        print("No cookie button found or not clickable:", e)
+
+    # Click the Energy button
+    try:
+        energy_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//a[contains(text(), 'Energy')]"))
+        )
+        energy_button.click()
+        print("Energy button clicked.")
+    except Exception as e:
+        print("Failed to click Energy button:", e)
+        driver.quit()
+        return None
+
+    # Enter postcode and start comparison
+    try:
+        WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.NAME, "postcode")))
+        postcode_input = driver.find_element(By.NAME, "postcode")
+        postcode_input.send_keys(postcode)
+        driver.find_element(By.XPATH, "//button[contains(text(), 'Start now')]").click()
+        print("Postcode entered and start button clicked.")
+    except Exception as e:
+        print("Failed during postcode entry:", e)
+        driver.quit()
+        return None
+
+    # Navigate through conditional screens
+    reached_email_input = False
+    attempt_count = 0
+
+    while not reached_email_input and attempt_count < 10:  # Prevent infinite loops
+        attempt_count += 1
+        try:
+            # Check if the email input or skip button is present on the page
+            email_input = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.ID, "email-address-input")))
+            email_input.send_keys("tester@gmail.com")
+            print("Email entered.")
+            reached_email_input = True
+            break
+        except:
+            print("Navigating interactive pages...")
+
+            # Handle interaction-required pages
+            if not handle_interactive_pages(driver):
+                print("User intervention required.")
+                input("Adjust the browser to the correct state and press Enter to continue...")
+                print("Resuming automation...")
+
+    if not reached_email_input:
+        print("Failed to navigate through the site automatically.")
+        driver.quit()
+        return None
+
+    # Final steps to retrieve and save data
+    final_continuation(driver, postcode)
+
+def handle_interactive_pages(driver):
+    try:
+        # Try clicking the skip button if available
+        skip_button = WebDriverWait(driver, 2).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Skip')]")))
+        skip_button.click()
+        print("Skip button clicked.")
+        return True
+    except Exception:
+        print("Skip button not found, checking for radio buttons or continue button.")
+
+    try:
+        # Select the first radio button if present
+        radio_button = WebDriverWait(driver, 2).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='radio']")))
+        radio_button.click()
+        print("Radio button selected.")
+
+        # Click the 'Continue' button
+        continue_button = WebDriverWait(driver, 2).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
+        continue_button.click()
+        print("Continue button clicked.")
+        return True
+    except Exception as e:
+        print(f"Interactive navigation failed: {e}")
+        return False
+
+def final_continuation(driver, postcode):
+    try:
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Continue')]")))
+        continue_button_email = driver.find_element(By.XPATH, "//button[contains(text(), 'Continue')]")
+        continue_button_email.click()
+        print("Final continue button clicked.")
+    except Exception as e:
+        print("Failed to click final continue button:", e)
+        driver.quit()
+        return None
+    
+    # Additional steps to scrape and process data
+    data = scrape_data(driver, postcode)
+    if data is not None:
+        data.to_csv('/tmp/scraped_data.csv', index=False)  # Save to temporary file
+    driver.quit()
+    return data
+
 
 def navigate_and_scrape(url, postcode):
     driver = setup_driver()
@@ -116,6 +263,62 @@ def navigate_and_scrape(url, postcode):
         driver.quit()
         return None
 
+    # Navigate through conditional screens
+    # reached_email_input = False
+    # attempt_count = 0
+
+    # while not reached_email_input and attempt_count < 10:  # Prevent infinite loops
+    #     attempt_count += 1
+    #     try:
+    #         # Check if the email input or skip button is present on the page
+    #         email_input = WebDriverWait(driver, 2).until(
+    #             EC.presence_of_element_located((By.ID, "email-address-input")))
+    #         email_input.send_keys("tester@gmail.com")
+    #         print("Email entered.")
+    #         reached_email_input = True
+    #         break
+    #     except:
+    #         print("Navigating interactive pages...")
+
+    #         # Handle interaction-required pages
+    #         print("User intervention required. Adjust the browser to the correct state and press Enter to continue...")
+    #         input("Press Enter in the console to continue once the page is correctly set...")
+    #         print("Resuming automation...")
+
+    # if not reached_email_input:
+    #     print("Failed to navigate through the site automatically.")
+    #     driver.quit()
+    #     return None
+
+    # # Navigate through conditional screens
+    # reached_email_input = False
+    # attempt_count = 0
+
+    # while not reached_email_input and attempt_count < 10:  # Prevent infinite loops
+    #     attempt_count += 1
+    #     try:
+    #         # Check if the email input or skip button is present on the page
+    #         email_input = WebDriverWait(driver, 2).until(
+    #             EC.presence_of_element_located((By.ID, "email-address-input")))
+    #         email_input.send_keys("tester@gmail.com")
+    #         print("Email entered.")
+    #         reached_email_input = True
+    #         break
+    #     except:
+    #         print("Navigating interactive pages...")
+
+    #         # Handle interaction-required pages
+    #         if not handle_interactive_pages(driver):
+    #             print("User intervention required.")
+    #             input("Adjust the browser to the correct state and press Enter to continue...")
+    #             print("Resuming automation...")
+
+    # if not reached_email_input:
+    #     print("Failed to navigate through the site automatically.")
+    #     driver.quit()
+    #     return None
+
+
     # Locate and click the 'Skip' button
     try:
         skip_button = WebDriverWait(driver, 4).until(
@@ -169,20 +372,13 @@ def navigate_and_scrape(url, postcode):
                         driver.quit()
                         return None
 
-    # try:
-    #     WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.ID, "email-address-input")))
-    #     email_input = driver.find_element(By.ID, "email-address-input")
-    #     email_input.send_keys("tester@gmail.com")
-    #     print("Email entered.")
-    # except Exception as e:
-    #     print("Failed during email entry:", e)
-    #     driver.quit()
-    #     return None
-
     try:
-        WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Continue')]")))
-        continue_button_email = driver.find_element(By.XPATH, "//button[contains(text(), 'Continue')]")
-        continue_button_email.click()
+        continue_button = WebDriverWait(driver, 2).until(
+            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
+        continue_button.click()
+        # WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Continue')]")))
+        # continue_button_email = driver.find_element(By.XPATH, "//button[contains(text(), 'Continue')]")
+        # continue_button_email.click()
         print("Final continue button clicked.")
     except Exception as e:
         print("Failed to click final continue button:", e)
@@ -241,7 +437,6 @@ def navigate_and_scrape(url, postcode):
     if data is not None:
         data.to_csv('/tmp/scraped_data.csv', index=False)  # Save to temporary file
     return data
-
 
 import json
 import re
@@ -424,7 +619,8 @@ def index():
                 ,"DA16 3RQ", "WA13 0TS",
                 "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
                 "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
-                "BS4 1QY", "HD2 1RE"
+                "BS4 1QY", 
+                "HD2 1RE"
             ]
             url = "https://www.uswitch.com/"
             clear_existing_data(filepath)  # Optional: Clear data before new scrape
