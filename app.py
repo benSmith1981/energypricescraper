@@ -54,6 +54,7 @@ def setup_driver():
 
     return driver
 
+
 # def setup_driver():
 #     """Setup Chrome WebDriver with necessary options."""
 #     chrome_options = Options()
