@@ -125,33 +125,6 @@ def navigate_and_scrape(url, postcode):
         driver.quit()
         return None
 
-    # Navigate through conditional screens
-    # reached_email_input = False
-    # attempt_count = 0
-
-    # while not reached_email_input and attempt_count < 10:  # Prevent infinite loops
-    #     attempt_count += 1
-    #     try:
-    #         # Check if the email input or skip button is present on the page
-    #         email_input = WebDriverWait(driver, 2).until(
-    #             EC.presence_of_element_located((By.ID, "email-address-input")))
-    #         email_input.send_keys("tester@gmail.com")
-    #         print("Email entered.")
-    #         reached_email_input = True
-    #         break
-    #     except:
-    #         print("Navigating interactive pages...")
-
-    #         # Handle interaction-required pages
-    #         print("User intervention required. Adjust the browser to the correct state and press Enter to continue...")
-    #         input("Press Enter in the console to continue once the page is correctly set...")
-    #         print("Resuming automation...")
-
-    # if not reached_email_input:
-    #     print("Failed to navigate through the site automatically.")
-    #     driver.quit()
-    #     return None
-
     # # Navigate through conditional screens
     # reached_email_input = False
     # attempt_count = 0
@@ -170,21 +143,24 @@ def navigate_and_scrape(url, postcode):
     #         print("Navigating interactive pages...")
 
     #         # Handle interaction-required pages
-    #         if not handle_interactive_pages(driver):
-    #             print("User intervention required.")
-    #             input("Adjust the browser to the correct state and press Enter to continue...")
-    #             print("Resuming automation...")
+    #         print("User intervention required. Adjust the browser to the correct state and press Enter to continue...")
+    #         # input("Press Enter in the console to continue once the page is correctly set...")
+    #         print("Resuming automation...")
 
     # if not reached_email_input:
     #     print("Failed to navigate through the site automatically.")
     #     driver.quit()
     #     return None
 
+    # Navigate through conditional screens
+    reached_email_input = False
+    attempt_count = 0
+
 
     # Locate and click the 'Skip' button
     try:
         # Locate the button by partial text content
-        WebDriverWait(driver, 2).until(
+        WebDriverWait(driver, 4).until(
             EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Skip')]"))
         )
         skip_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Skip')]")
@@ -198,57 +174,57 @@ def navigate_and_scrape(url, postcode):
         print("Skip not clicked")
         print(e)
         # Navigate through potentially multiple screens with radio buttons and continue buttons
-        # reached_email_input = False
-        # attempt_count = 0
+        reached_email_input = False
+        attempt_count = 0
 
-        # while not reached_email_input and attempt_count < 10:  # Prevent infinite loops
-        #     attempt_count += 1
-        #     try:
-        #         # Check if the email input or skip button is present on the page
-        #         email_input = WebDriverWait(driver, 2).until(
-        #             EC.presence_of_element_located((By.ID, "email-address-input")))
-        #         email_input.send_keys("tester@gmail.com")
-        #         print("Email entered.")
-        #         reached_email_input = True
-        #         break
-        #     except Exception:
-        #         try:
-        #             # Try clicking the skip button if available
-                    # skip_button = WebDriverWait(driver, 2).until(
-                    #     EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Skip')]")))
-        #             skip_button.click()
-        #             print("Skip button clicked.")
-        #             continue  # Continue to check for email input again
-        #         except Exception:
-        #             print("Skip button not found, checking for radio buttons or continue button.")
-        #             # Select the first radio button if present
-        #             try:
-        #                 radio_button = WebDriverWait(driver, 2).until(
-        #                     EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='radio']")))
-        #                 radio_button.click()
-        #                 print("Radio button selected.")
-        #             except Exception:
-        #                 print("No radio buttons found.")
+        while not reached_email_input and attempt_count < 10:  # Prevent infinite loops
+            attempt_count += 1
+            try:
+                # Check if the email input or skip button is present on the page
+                email_input = WebDriverWait(driver, 2).until(
+                    EC.presence_of_element_located((By.ID, "email-address-input")))
+                email_input.send_keys("tester@gmail.com")
+                print("Email entered.")
+                reached_email_input = True
+                break
+            except Exception:
+                try:
+                    # Try clicking the skip button if available
+                    skip_button = WebDriverWait(driver, 2).until(
+                        EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Skip')]")))
+                    skip_button.click()
+                    print("Skip button clicked.")
+                    continue  # Continue to check for email input again
+                except Exception:
+                    print("Skip button not found, checking for radio buttons or continue button.")
+                    # Select the first radio button if present
+                    try:
+                        radio_button = WebDriverWait(driver, 2).until(
+                            EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='radio']")))
+                        radio_button.click()
+                        print("Radio button selected.")
+                    except Exception:
+                        print("No radio buttons found.")
 
-        #             # Click the 'Continue' button
-        #             try:
-        #                 continue_button = WebDriverWait(driver, 2).until(
-        #                     EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
-        #                 continue_button.click()
-        #                 print("Continue button clicked.")
-        #             except Exception as e:
-        #                 print("No continue button found or not clickable:", e)
-        #                 driver.quit()
-        #                 return None
+                    # Click the 'Continue' button
+                    try:
+                        continue_button = WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
+                        continue_button.click()
+                        print("Continue button clicked.")
+                    except Exception as e:
+                        print("No continue button found or not clickable:", e)
+                        driver.quit()
+                        return None
 
-    try:
-        # Check if the email input or skip button is present on the page
-        email_input = WebDriverWait(driver, 4).until(
-            EC.presence_of_element_located((By.ID, "email-address-input")))
-        email_input.send_keys("tester@gmail.com")
-        print("Email entered.")
-    except Exception as e:
-        print("email not entered? {e}")
+    # try:
+    #     # Check if the email input or skip button is present on the page
+    #     email_input = WebDriverWait(driver, 3).until(
+    #         EC.presence_of_element_located((By.ID, "email-address-input")))
+    #     email_input.send_keys("tester@gmail.com")
+    #     print("Email entered.")
+    # except Exception as e:
+    #     print("email not entered? {e}")
 
     try:
         continue_button = WebDriverWait(driver, 2).until(
