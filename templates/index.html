@@ -5,20 +5,17 @@
     <title>Energy Plan Scraper</title>
 </head>
 <body>
-    <h1>Energy Plan Scraper</h1>
-    <form method="post" action="/">
-        <label for="url">Enter the URL:</label>
-        <input type="text" id="url" name="url" value="{{ default_url }}">
-        <input type="submit" value="Scrape">
+    <h1>Energy Plan Data</h1>
+    <form method="POST">
+        <button type="submit" name="action" value="Scrape Data">Scrape New Data</button>
+        <button type="submit" name="action" value="Clear Data" style="margin-left: 20px;">Clear Data</button>
     </form>
+    <br>
     {% if data_table %}
         <div>{{ data_table|safe }}</div>
-        <!-- <form method="post" action="/download-csv">
-            <input type="hidden" id="url" name="url" value="{{ default_url }}">
-            <input type="submit" value="Download CSV">
-        </form> -->
-        <a href="/download-csv?data_csv={{ data_csv|urlencode }}">Download CSV</a>
-
+        <a href="/download-csv">Download CSV</a>
+    {% else %}
+        <p>No data available. Use the buttons above to manage data.</p>
     {% endif %}
 </body>
 </html>
