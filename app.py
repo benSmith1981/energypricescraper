@@ -54,6 +54,19 @@ def setup_driver():
 
     return driver
 
+def click_radio_button_by_text(driver, text):
+    try:
+        # Construct an XPath that finds a label containing specific text and clicks it
+        # This XPath assumes the text is within a <div> inside the <label>
+        label_xpath = f"//label[.//div[contains(text(), '{text}')]]"
+        radio_label = WebDriverWait(driver, 2).until(
+            EC.element_to_be_clickable((By.XPATH, label_xpath))
+        )
+        radio_label.click()
+        print(f"Clicked radio button with text: {text}")
+    except Exception as e:
+        print(f"Failed to click radio button with text '{text}': {e}")
+
 def navigate_and_scrape(url, postcode):
     driver = setup_driver()
     # clear_cache(driver)  # Clear cache before navigating to the URL
@@ -197,14 +210,19 @@ def navigate_and_scrape(url, postcode):
                     continue  # Continue to check for email input again
                 except Exception:
                     print("Skip button not found, checking for radio buttons or continue button.")
-                    # Select the first radio button if present
+                    # Economy 7 meter question. 'No' option to be clickable and click it
+                    # click_radio_button_by_text(driver, "No")
+
                     try:
-                        radio_button = WebDriverWait(driver, 2).until(
-                            EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='radio']")))
-                        radio_button.click()
-                        print("Radio button selected.")
-                    except Exception:
-                        print("No radio buttons found.")
+                        # Wait for the label associated with the 'No' option to be clickable and click it
+                        WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='8']"))
+                        )
+                        no_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='8']")
+                        no_option_label.click()
+                        print("Clicked 'No' radio button for the Economy 7 meter question.")
+                    except Exception as e:
+                        print("Failed to click 'No' radio button:", e)
 
                     # Click the 'Continue' button
                     try:
@@ -216,23 +234,135 @@ def navigate_and_scrape(url, postcode):
                         print("No continue button found or not clickable:", e)
                         driver.quit()
                         return None
+                    
+                    # Do you use gas? Wait for the label associated with the 'Yes' option to be clickable and click it
+                    # click_radio_button_by_text(driver, "Yes")
 
-    # try:
-    #     # Check if the email input or skip button is present on the page
-    #     email_input = WebDriverWait(driver, 3).until(
-    #         EC.presence_of_element_located((By.ID, "email-address-input")))
-    #     email_input.send_keys("tester@gmail.com")
-    #     print("Email entered.")
-    # except Exception as e:
-    #     print("email not entered? {e}")
+                    try:
+                        # Do you use gas? Wait for the label associated with the 'Yes' option to be clickable and click it
+                        WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='249']"))
+                        )
+                        yes_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='249']")
+                        yes_option_label.click()
+                        print("Do you use gas? 'Yes' .")
+                    except Exception as e:
+                        print("Failed to click 'Yes' option for Do you use gas?:", e)
+                    
+                    # Click the 'Continue' button
+                    try:
+                        continue_button = WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
+                        continue_button.click()
+                        print("Continue button clicked.")
+                    except Exception as e:
+                        print("No continue button found or not clickable:", e)
+                        driver.quit()
+                        return None
+                    
+                    # Dual Fuel Tarriff: Wait for the label associated with the 'No' option to be clickable and click it
+                    click_radio_button_by_text(driver, "No")
+
+                    # try:
+                    #     # Dual Fuel Tarriff: Wait for the label associated with the 'No' option to be clickable and click it
+                    #     WebDriverWait(driver, 2).until(
+                    #         EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='249']"))
+                    #     )
+                    #     no_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='249']")
+                    #     no_option_label.click()
+                    #     print("Dual Fuel Tarriff: 'No' radio button for")
+                    # except Exception as e:
+                    #     print("Dual Fuel Tarriff: Failed to click 'No' radio button:", e)
+
+                    # Click the 'Continue' button
+                    try:
+                        continue_button = WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
+                        continue_button.click()
+                        print("Continue button clicked.")
+                    except Exception as e:
+                        print("No continue button found or not clickable:", e)
+                        driver.quit()
+                        return None
+                    
+                    # Which supplier are you with? Click the 'Continue' Bristih gas button
+                    try:
+                        continue_button = WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
+                        continue_button.click()
+                        print("Continue Which supplier are you with? button clicked.")
+                    except Exception as e:
+                        print("Which supplier are you with? No continue button found or not clickable:", e)
+                        driver.quit()
+                        return None
+
+                        
+                    # How do you pay for your energy? Select the first radio button if present
+                    try:
+                        radio_button = WebDriverWait(driver, 2).until(
+                            EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='radio']")))
+                        radio_button.click()
+                        print("How do you pay for your energy? Radio button selected.")
+                    except Exception:
+                        print("How do you pay for your energy? No radio buttons found.")
+
+                    # Click the 'Continue' button for How do you pay for your energy?
+                    try:
+                        continue_button = WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
+                        continue_button.click()
+                        print("Continue button clicked. How do you pay for your energy?")
+                    except Exception as e:
+                        print("No How do you pay for your energy? continue button found or not clickable:", e)
+                        driver.quit()
+                        return None
+                    
+                    try:
+                        # What's your plan name? Locate the button by partial text content
+                        WebDriverWait(driver, 4).until(
+                            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Skip')]"))
+                        )
+                        skip_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Skip')]")
+                        skip_button.click()
+                        # skip_button = WebDriverWait(driver, 4).until(
+                        #     EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'whitespace-break-spaces') and contains(text(), 'Skip')]"))
+                        #     # EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, '/gas-electricity/') and contains(@class, 'ev-1a1odnc')]"))
+                        # )
+                        print("What's your plan name? Skip button clicked")
+                    except Exception as e:
+                        print("What's your plan name? Skip not clicked")
+                        print(e)
+
+                    # Do you know how much you use or spend on your energy?
+                    click_radio_button_by_text(driver, "No")
+                    # Click the 'Continue' button Do you know how much you use or spend on your energy?
+                    try:
+                        continue_button = WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
+                        continue_button.click()
+                        print("Continue button clicked. Do you know how much you use or spend on your energy?")
+                    except Exception as e:
+                        print("Do you know how much you use or spend on your energy? No continue button found or not clickable:", e)
+                        driver.quit()
+                        return None
+                
+
+                    # Click the 'Continue' button What size is your property?
+                    try:
+                        continue_button = WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
+                        continue_button.click()
+                        print("What size is your property? Continue button clicked.")
+                    except Exception as e:
+                        print("No continue button found or not clickable: What size is your property?", e)
+                        driver.quit()
+                        return None
+
 
     try:
         continue_button = WebDriverWait(driver, 2).until(
             EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Continue')]")))
         continue_button.click()
-        # WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.XPATH, "//button[contains(text(), 'Continue')]")))
-        # continue_button_email = driver.find_element(By.XPATH, "//button[contains(text(), 'Continue')]")
-        # continue_button_email.click()
         print("Final continue button clicked.")
     except Exception as e:
         print("Failed to click final continue button:", e)
@@ -240,7 +370,7 @@ def navigate_and_scrape(url, postcode):
         return None
     
     try:
-        filter_button = WebDriverWait(driver, 5).until(
+        filter_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-label='filters-open']"))
         )
         filter_button.click()
@@ -291,6 +421,7 @@ def navigate_and_scrape(url, postcode):
     if data is not None:
         data.to_csv('/tmp/scraped_data.csv', index=False)  # Save to temporary file
     return data
+
 
 import json
 import re
@@ -405,12 +536,12 @@ def index():
             data_table = ""
         elif request.form.get('action') == 'Scrape Data':
             postcodes = [
-                "NR26 8PH"
+                # "NR26 8PH"
                 # , "LE4 5GH" 
                 # ,"DA16 3RQ", "WA13 0TS",
                 # "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
                 # "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
-                # "BS4 1QY", 
+                "BS4 1QY" 
                 # "HD2 1RE"
             ]
             url = "https://www.uswitch.com/"
