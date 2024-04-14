@@ -376,12 +376,12 @@ def navigate_and_scrape(url, postcode):
 
     try:
         # Check if the email input or skip button is present on the page
-        email_input = WebDriverWait(driver, 3).until(
+        email_input = WebDriverWait(driver, 4).until(
             EC.presence_of_element_located((By.ID, "email-address-input")))
         email_input.send_keys("tester@gmail.com")
         print("Email entered.")
     except Exception as e:
-        print(e)
+        print("email not clicked? {e}")
 
     try:
         continue_button = WebDriverWait(driver, 2).until(
