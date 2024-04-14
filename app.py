@@ -44,7 +44,7 @@ def setup_driver():
     if 'DYNO' in os.environ:
         # On Heroku, use the environment variables and headless mode
         chrome_options.binary_location = os.getenv('GOOGLE_CHROME_BIN')
-        chrome_options.add_argument("--headless")
+        # chrome_options.add_argument("--headless")
         chrome_options.add_argument("--disable-gpu")
         driver = webdriver.Chrome(executable_path=os.getenv('CHROMEDRIVER_PATH'), chrome_options=chrome_options)
     else:
@@ -381,7 +381,7 @@ def navigate_and_scrape(url, postcode):
         email_input.send_keys("tester@gmail.com")
         print("Email entered.")
     except Exception as e:
-        print("email not clicked? {e}")
+        print("email not entered? {e}")
 
     try:
         continue_button = WebDriverWait(driver, 2).until(
