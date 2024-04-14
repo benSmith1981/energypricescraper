@@ -2,20 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Energy Plan Scraper</title>
+    <title>Scrape Energy Data</title>
 </head>
 <body>
-    <h1>Energy Plan Data</h1>
+    <h1>Energy Data Scraper</h1>
     <form method="POST">
-        <button type="submit" name="action" value="Scrape Data">Scrape New Data</button>
-        <button type="submit" name="action" value="Clear Data" style="margin-left: 20px;">Clear Data</button>
+        <div>
+            <h2>Select Postcodes:</h2>
+            {% for code in postcodes %}
+            <label>
+                <input type="checkbox" name="postcodes" value="{{ code }}" checked>{{ code }}
+            </label><br>
+            {% endfor %}
+        </div>
+        <button type="submit" name="action" value="Scrape Data">Scrape Data</button>
+        <button type="submit" name="action" value="Clear Data">Clear Data</button>
     </form>
-    <br>
-    {% if data_table %}
-        <div>{{ data_table|safe }}</div>
-        <a href="/download-csv">Download CSV</a>
-    {% else %}
-        <p>No data available. Use the buttons above to manage data.</p>
-    {% endif %}
+    <h2>Scraped Data</h2>
+    <div>{{ data_table|safe }}</div>
+    <a href="{{ url_for('download_csv') }}">Download CSV</a>
 </body>
 </html>

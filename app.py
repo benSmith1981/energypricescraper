@@ -369,50 +369,50 @@ def navigate_and_scrape(url, postcode):
         driver.quit()
         return None
     
-    # try:
-    #     filter_button = WebDriverWait(driver, 10).until(
-    #         EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-label='filters-open']"))
-    #     )
-    #     filter_button.click()
-    #     print("Filter button clicked.")
-    # except Exception as e:
-    #     print("Failed to click Filter button:", e)
-    #     driver.quit()
-    #     return None
+    try:
+        filter_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-label='filters-open']"))
+        )
+        filter_button.click()
+        print("Filter button clicked.")
+    except Exception as e:
+        print("Failed to click Filter button:", e)
+        driver.quit()
+        return None
 
-    # try:
-    #     div_element = WebDriverWait(driver, 5).until(
-    #         EC.presence_of_element_located((By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]"))
-    #     )
-    #     div_element.click()
-    # except Exception as e:
-    #     print("Failed to click Radio button:", e)
-    #     driver.quit()
-    #     return None
+    try:
+        div_element = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]"))
+        )
+        div_element.click()
+    except Exception as e:
+        print("Failed to click Radio button:", e)
+        driver.quit()
+        return None
 
-    # try:
-    #     aside_element = WebDriverWait(driver, 5).until(
-    #         EC.presence_of_element_located((By.CSS_SELECTOR, "aside[aria-label='Dialog: results page filters']"))
-    #     )
-    #     show_results_button = aside_element.find_element(By.CSS_SELECTOR, "button[type='submit']")
-    #     show_results_button.click()
-    #     print("Show results button clicked.")
-    # except Exception as e:
-    #     print("Failed to click Show results button:", e)
-    #     driver.quit()
-    #     return None
+    try:
+        aside_element = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "aside[aria-label='Dialog: results page filters']"))
+        )
+        show_results_button = aside_element.find_element(By.CSS_SELECTOR, "button[type='submit']")
+        show_results_button.click()
+        print("Show results button clicked.")
+    except Exception as e:
+        print("Failed to click Show results button:", e)
+        driver.quit()
+        return None
 
-    # try:
-    #     for _ in range(4):
-    #         see_more_button = WebDriverWait(driver, 3).until(
-    #             EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
-    #         )
-    #         # Scroll to the bottom of the page
-    #         driver.find_element_by_tag_name('body').send_keys(Keys.END)
-    #         see_more_button.click()
-    #         print("See more results button clicked.")
-    # except Exception as e:
-    #     print("Failed to click See more results button:", e)
+    try:
+        for _ in range(4):
+            see_more_button = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
+            )
+            # Scroll to the bottom of the page
+            driver.find_element_by_tag_name('body').send_keys(Keys.END)
+            see_more_button.click()
+            print("See more results button clicked.")
+    except Exception as e:
+        print("Failed to click See more results button:", e)
 
     time.sleep(3)  # Wait for the results page to load completely
 
@@ -529,27 +529,30 @@ def scrape_and_save_data(postcodes, url, filepath):
 def index():
     filepath = '/tmp/scraped_data.csv'
     data_table = ""
+    all_postcodes = [
+        "NR26 8PH", "LE4 5GH", "DA16 3RQ", "WA13 0TS",
+        "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
+        "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
+        "BS4 1QY", "HD2 1RE"
+    ]
 
     if request.method == 'POST':
-        if request.form.get('action') == 'Clear Data':
+        selected_postcodes = request.form.getlist('postcodes')
+        action = request.form.get('action')
+
+        if action == 'Clear Data':
             clear_existing_data(filepath)
-            data_table = ""
-        elif request.form.get('action') == 'Scrape Data':
-            postcodes = [
-                "NR26 8PH"
-                , "LE4 5GH" 
-                ,"DA16 3RQ", "WA13 0TS",
-                "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
-                "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
-                "BS4 1QY" ,
-                "HD2 1RE"
-            ]
+            data_table = "Data cleared."
+        elif action == 'Scrape Data':
+            if not selected_postcodes:
+                selected_postcodes = all_postcodes  # Default to all if none are selected
             url = "https://www.uswitch.com/"
             clear_existing_data(filepath)  # Optional: Clear data before new scrape
-            scraped_data = scrape_and_save_data(postcodes, url, filepath)
+            scraped_data = scrape_and_save_data(selected_postcodes, url, filepath)
             data_table = scraped_data.to_html(classes='data', header="true", index=False)
 
-    return render_template('index.html', data_table=data_table)
+    return render_template('index.html', postcodes=all_postcodes, data_table=data_table)
+
 
 @app.route('/download-csv')
 def download_csv():
