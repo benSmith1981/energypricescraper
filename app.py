@@ -183,17 +183,19 @@ def navigate_and_scrape(url, postcode):
 
     # Locate and click the 'Skip' button
     try:
-        skip_button = WebDriverWait(driver, 2).until(
+        # Locate the button by partial text content
+        WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Skip')]"))
         )
-        
+        skip_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Skip')]")
+        skip_button.click()
         # skip_button = WebDriverWait(driver, 4).until(
         #     EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'whitespace-break-spaces') and contains(text(), 'Skip')]"))
         #     # EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, '/gas-electricity/') and contains(@class, 'ev-1a1odnc')]"))
         # )
-        skip_button.click()
         print("Skip button clicked")
     except Exception as e:
+        print("Skip not clicked")
         print(e)
         # Navigate through potentially multiple screens with radio buttons and continue buttons
         # reached_email_input = False
