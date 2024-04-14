@@ -184,7 +184,7 @@ def navigate_and_scrape(url, postcode):
     # Locate and click the 'Skip' button
     try:
         # Locate the button by partial text content
-        WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 2).until(
             EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Skip')]"))
         )
         skip_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Skip')]")
