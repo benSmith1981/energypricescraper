@@ -616,12 +616,13 @@ def index():
             data_table = ""
         elif request.form.get('action') == 'Scrape Data':
             postcodes = [
-                "NR26 8PH", "LE4 5GH" 
-                ,"DA16 3RQ", "WA13 0TS",
-                "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
-                "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
-                "BS4 1QY", 
-                "HD2 1RE"
+                "NR26 8PH"
+                # , "LE4 5GH" 
+                # ,"DA16 3RQ", "WA13 0TS",
+                # "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
+                # "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
+                # "BS4 1QY", 
+                # "HD2 1RE"
             ]
             url = "https://www.uswitch.com/"
             clear_existing_data(filepath)  # Optional: Clear data before new scrape
