@@ -7,39 +7,54 @@
         function selectAll() {
             var items = document.getElementsByName('postcodes');
             for (var i = 0; i < items.length; i++) {
-                items[i].checked = true;
+                if (items[i].type == 'checkbox')
+                    items[i].checked = true;
             }
         }
-    
+
         function deselectAll() {
             var items = document.getElementsByName('postcodes');
             for (var i = 0; i < items.length; i++) {
-                items[i].checked = false;
+                if (items[i].type == 'checkbox')
+                    items[i].checked = false;
             }
         }
-    
+    </script>
+</head>
+<body>
+    <h1>Postcode Data Scraper</h1>
+    <button onclick="startScraping()">Scrape All Postcodes</button>
+    <div id="status"></div>
+
+
+    <h1>Energy Data Scraper</h1>
+    <form method="POST">
+        <div>
+            <h2>Select Postcodes:</h2>
+            {% for code in postcodes %}
+            <label>
+                <input type="checkbox" name="postcodes" value="{{ code }}" checked>{{ code }}
+            </label><br>
+            {% endfor %}
+            <button type="button" onclick="selectAll()">Select All</button>
+            <button type="button" onclick="deselectAll()">Deselect All</button>
+        </div>
+        <button type="submit" name="action" value="Clear Data">Clear Data</button>
+    </form>
+
+    <script>
+        let postcodes = {{ postcodes | tojson }};
+        let current = 0;
+
         function startScraping() {
-            var selectedPostcodes = [];
-            var checkboxes = document.querySelectorAll('input[name="postcodes"]:checked');
-            for (var checkbox of checkboxes) {
-                selectedPostcodes.push(checkbox.value);
-            }
-            scrapePostcodes(selectedPostcodes, 0);
-        }
-    
-        function scrapePostcodes(postcodes, index) {
-            if (index < postcodes.length) {
-                scrapePostcode(postcodes[index], () => {
-                    scrapePostcodes(postcodes, index + 1);
-                });
+            if (current < postcodes.length) {
+                scrapePostcode(postcodes[current]);
             } else {
-                document.getElementById('status').innerHTML += '<p>All selected postcodes processed.</p>';
-                addDownloadButton();
-                populateDataTable();
+                document.getElementById('status').innerHTML += '<p>All postcodes processed.</p>';
             }
         }
-    
-        function scrapePostcode(postcode, callback) {
+
+        function scrapePostcode(postcode) {
             document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
             fetch('/scrape', {
                 method: 'POST',
@@ -48,65 +63,21 @@
                 },
                 body: JSON.stringify({postcode: postcode})
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
                 document.getElementById('status').innerHTML += `<p>${data.message}</p>`;
                 if (data.filepath) {
                     document.getElementById('status').innerHTML += `<a href="/download_csv/${data.filepath.split('/').pop()}">Download ${postcode} data</a><br>`;
                 }
-                callback();
+                current++;
+                startScraping();  // Trigger the next postcode
             })
             .catch(error => {
-                document.getElementById('status').innerHTML += `<p>Error processing ${postcode}: ${error.message}</p>`;
-                callback();
-            });
-        }
-    
-        function addDownloadButton() {
-            var downloadLink = document.createElement('a');
-            downloadLink.href = '/download_csv/all_scraped_data.csv';
-            downloadLink.innerText = 'Download Compiled Data';
-            downloadLink.className = 'download-button';
-            document.body.appendChild(downloadLink);
-        }
-    
-        function populateDataTable() {
-            fetch('/compiled_data')
-            .then(response => response.json())
-            .then(data => {
-                let tableHTML = "<table border='1'><tr><th>Region</th><th>Ranking</th><th>Company</th><th>Unit Rate Gas (kWh)</th><th>Standing Charge Gas (Day)</th><th>Unit Rate Elec (kWh)</th><th>Standing Charge Elec (Day)</th><th>Early Exit Fee</th><th>Estimated Annual Cost</th><th>Is Fulfillable</th></tr>";
-                data.forEach(row => {
-                    tableHTML += `<tr><td>${safeAccess(row, 'Region')}</td><td>${safeAccess(row, 'Ranking')}</td><td>${safeAccess(row, 'Company')}</td><td>${safeAccess(row, 'Unit Rate Gas (kWh)', 'N/A')}</td><td>${safeAccess(row, 'Standing Charge Gas (Day)', 'N/A')}</td><td>${safeAccess(row, 'Unit Rate Elec (kWh)', 'N/A')}</td><td>${safeAccess(row, 'Standing Charge Elec (Day)', 'N/A')}</td><td>${safeAccess(row, 'Early Exit Fee', 'N/A')}</td><td>${safeAccess(row, 'Estimated Annual Cost', 'N/A')}</td><td>${safeAccess(row, 'Is Fulfillable', 'N/A')}</td></tr>`;
-                });
-                tableHTML += "</table>";
-                document.getElementById('data_table').innerHTML = tableHTML;
-            })
-            .catch(error => {
-                document.getElementById('data_table').innerHTML = "Failed to fetch data. Error: " + error.message;
+                document.getElementById('status').innerHTML += `<p>Error processing ${postcode}: ${error}</p>`;
+                current++;
+                startScraping();
             });
         }
     </script>
-    
-</head>
-<body>
-    <h1>Energy Data Scraper</h1>
-    <div>
-        <h2>Select Postcodes:</h2>
-        {% for code in postcodes %}
-        <label>
-            <input type="checkbox" name="postcodes" value="{{ code }}" checked>{{ code }}
-        </label><br>
-        {% endfor %}
-        <button type="button" onclick="selectAll()">Select All</button>
-        <button type="button" onclick="deselectAll()">Deselect All</button>
-        <button type="button" onclick="startScraping()">Scrape Selected Postcodes</button>
-    </div>
-    <div id="status"></div>
-    <div id="data_table"></div>
 </body>
 </html>

@@ -591,15 +591,6 @@ def scrape():
         return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
     return jsonify({'message': 'Scraping failed', 'filepath': None})
 
-@app.route('/compiled_data')
-def compiled_data():
-    # This assumes you have a single file that is being appended to
-    filepath = '/tmp/all_scraped_data.csv'
-    if os.path.exists(filepath):
-        df = pd.read_csv(filepath)
-        return jsonify(df.to_dict(orient='records'))  # Convert dataframe to dictionary for easy JSON handling
-    return jsonify([])  # Return an empty list if no data is available
-
 
 @app.route('/download_csv/<filename>')
 def download_csv(filename):
@@ -608,6 +599,10 @@ def download_csv(filename):
         return send_from_directory(directory, filename, as_attachment=True)
     except FileNotFoundError:
         return jsonify({'error': 'File not found'}), 404
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 # @app.route('/', methods=['GET', 'POST'])
 # def index():
@@ -645,6 +640,3 @@ def download_csv(filename):
 #     if os.path.exists(filepath):
 #         return Response(open(filepath, 'r'), mimetype='text/csv', headers={"Content-Disposition": "attachment;filename=energy_plans.csv"})
 #     return "No data available for download."
-
-if __name__ == '__main__':
-    app.run(debug=True)
