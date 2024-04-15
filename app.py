@@ -369,16 +369,16 @@ def navigate_and_scrape(url, postcode):
         driver.quit()
         return None
     
-    # try:
-    #     filter_button = WebDriverWait(driver, 10).until(
-    #         EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-label='filters-open']"))
-    #     )
-    #     filter_button.click()
-    #     print("Filter button clicked.")
-    # except Exception as e:
-    #     print("Failed to click Filter button:", e)
-    #     driver.quit()
-    #     return None
+    try:
+        filter_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-label='filters-open']"))
+        )
+        filter_button.click()
+        print("Filter button clicked.")
+    except Exception as e:
+        print("Failed to click Filter button:", e)
+        driver.quit()
+        return None
 
     # try:
     #     div_element = WebDriverWait(driver, 5).until(
