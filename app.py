@@ -436,35 +436,37 @@ def navigate_and_scrape(url, postcode):
             print("Failed to click Show results button using JavaScript:", e)
             driver.quit()
             return None
+    # Ensure we wait for all necessary elements to load
+    WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.styles-module__resultCardWhole___cIuF2")))
 
-    # try:
-    #     for _ in range(4):
-    #         # Scroll to the bottom of the page
-    #         driver.find_element_by_tag_name('body').send_keys(Keys.END)
-    #         see_more_button = WebDriverWait(driver, 3).until(
-    #             EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
-    #         )
+    try:
+        for _ in range(4):
+            # Scroll to the bottom of the page
+            driver.find_element_by_tag_name('body').send_keys(Keys.END)
+            see_more_button = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
+            )
             
-    #         see_more_button.click()
-    #         print("See more results button clicked.")
-    # except Exception as e:
-    #     print("Failed to click See more results button:", e)
-    #     try:
-    #         for _ in range(4):
-    #             # Execute JavaScript to scroll to the bottom of the page
-    #             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            see_more_button.click()
+            print("See more results button clicked.")
+    except Exception as e:
+        print("Failed to click See more results button:", e)
+        try:
+            for _ in range(4):
+                # Execute JavaScript to scroll to the bottom of the page
+                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 
-    #             # Wait for the button to be clickable after the scroll
-    #             see_more_button = WebDriverWait(driver, 3).until(
-    #                 EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
-    #             )
+                # Wait for the button to be clickable after the scroll
+                see_more_button = WebDriverWait(driver, 3).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
+                )
                 
-    #             see_more_button.click()
-    #             print("See more results button clicked.")
-    #             time.sleep(2)  # slight delay to wait for the page to load more results if necessary
+                see_more_button.click()
+                print("See more results button clicked.")
+                time.sleep(2)  # slight delay to wait for the page to load more results if necessary
 
-    #     except Exception as e:
-    #         print("Failed to click See more results button:", e)
+        except Exception as e:
+            print("Failed to click See more results button:", e)
 
     time.sleep(3)  # Wait for the results page to load completely
 
@@ -473,20 +475,6 @@ def navigate_and_scrape(url, postcode):
     if data is not None:
         data.to_csv('/tmp/scraped_data.csv', index=False)  # Save to temporary file
     return data
-
-def modify_url_parameter(url, param_name, new_value):
-    """
-    Modify the specified parameter to a new value in the URL.
-    """
-    url_parts = list(urlparse(url))
-    query = parse_qs(url_parts[4])
-    query[param_name] = new_value  # Update the parameter with the new value
-    
-    # Properly encode the query dictionary back into a URL-encoded query string.
-    # The doseq=True argument is used to ensure that individual parameter values
-    # that are lists get correctly encoded as separate key-value pairs.
-    url_parts[4] = urlencode(query, doseq=True)
-    return urlunparse(url_parts)
 
 import json
 import re
