@@ -423,9 +423,19 @@ def navigate_and_scrape(url, postcode):
         show_results_button.click()
         print("Show results button clicked.")
     except Exception as e:
-        print("Failed to click Show results button:", e)
-        driver.quit()
-        return None
+        try:
+            aside_element = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "aside[aria-label='Dialog: results page filters']"))
+            )
+            show_results_button = aside_element.find_element(By.CSS_SELECTOR, "button[type='submit']")
+            
+            # Using JavaScript to perform the click action
+            driver.execute_script("arguments[0].click();", show_results_button)
+            print("Show results button clicked using JavaScript.")
+        except Exception as e:
+            print("Failed to click Show results button using JavaScript:", e)
+            driver.quit()
+            return None
 
     # try:
     #     for _ in range(4):
