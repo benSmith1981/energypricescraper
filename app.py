@@ -571,17 +571,20 @@ def index():
 #         return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
 
 #     return jsonify({'message': 'Scraping failed', 'filepath': None})
+
 @app.route('/scrape', methods=['POST'])
 def scrape():
     data = request.get_json()
     postcode = data['postcode']
     url = "https://www.uswitch.com/"
 
-    # Assuming navigate_and_scrape returns a DataFrame
+    # Here, navigate_and_scrape is your function that takes a URL and a postcode and returns a DataFrame.
     scraped_data = navigate_and_scrape(url, postcode)
     if scraped_data is not None:
-        save_scraped_data(scraped_data, all_data_path)
-        return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': all_data_path})
+        # Assuming you're saving each result to prevent data loss in case of a crash
+        filepath = f'/tmp/scraped_{postcode}.csv'
+        scraped_data.to_csv(filepath, index=False)
+        return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
 
     return jsonify({'message': 'Scraping failed', 'filepath': None})
 
