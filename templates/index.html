@@ -35,7 +35,7 @@
             } else {
                 document.getElementById('status').innerHTML += '<p>All selected postcodes processed.</p>';
                 addDownloadButton(); // Add the download button only after all postcodes are processed
-                fetchData();
+                populateDataTable();
             }
         }
 
@@ -78,6 +78,22 @@
                 })
                 .catch(error => {
                     document.getElementById('data_table').innerHTML = "Failed to fetch data.";
+                });
+        }
+
+        function populateDataTable() {
+            fetch('/compiled_data') // API endpoint to fetch the compiled data
+                .then(response => response.json())
+                .then(data => {
+                    let tableHTML = "<table border='1'><tr><th>Region</th><th>Ranking</th><th>Company</th><th>Unit Rate Gas (kWh)</th><th>Standing Charge Gas (Day)</th><th>Unit Rate Elec (kWh)</th><th>Standing Charge Elec (Day)</th><th>Early Exit Fee</th><th>Estimated Annual Cost</th><th>Is Fulfillable</th></tr>";
+                    data.forEach(row => {
+                        tableHTML += `<tr><td>${safeAccess(row, 'Region')}</td><td>${safeAccess(row, 'Ranking')}</td><td>${safeAccess(row, 'Company')}</td><td>${safeAccess(row, 'Unit Rate Gas (kWh)', 'N/A')}</td><td>${safeAccess(row, 'Standing Charge Gas (Day)', 'N/A')}</td><td>${safeAccess(row, 'Unit Rate Elec (kWh)', 'N/A')}</td><td>${safeAccess(row, 'Standing Charge Elec (Day)', 'N/A')}</td><td>${safeAccess(row, 'Early Exit Fee', 'N/A')}</td><td>${safeAccess(row, 'Estimated Annual Cost', 'N/A')}</td><td>${safeAccess(row, 'Is Fulfillable', 'N/A')}</td></tr>`;
+                    });
+                    tableHTML += "</table>";
+                    document.getElementById('data_table').innerHTML = tableHTML;
+                })
+                .catch(error => {
+                    document.getElementById('data_table').innerHTML = "Failed to fetch data. Error: " + error;
                 });
         }
         function addDownloadButton() {

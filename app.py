@@ -528,12 +528,41 @@ def scrape():
     postcode = data['postcode']
     url = "https://www.uswitch.com/"
     scraped_data = navigate_and_scrape(url, postcode)
+    combined_data = pd.DataFrame()
+
     if scraped_data is not None:
         filepath = f'/tmp/scraped_{postcode}.csv'
         scraped_data.to_csv(filepath, index=False)
-        # data_table = scraped_data.to_html(classes='data', header="true", index=False)
-        return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
+        if scraped_data is not None:
+            combined_data = pd.concat([combined_data, scraped_data], ignore_index=True)
+        if not combined_data.empty:
+            filepath = '/tmp/combined_scraped_data.csv'
+            combined_data.to_csv(filepath, index=False)
+            return jsonify({'message': 'Scraping successful', 'filepath': 'combined_scraped_data.csv'})
+        else:
+            return jsonify({'message': 'Scraping failed', 'filepath': None}), 500
+            # return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
     return jsonify({'message': 'Scraping failed', 'filepath': None})
+
+# @app.route('/scrape', methods=['POST'])
+# def scrape():
+#     data = request.get_json()
+#     postcodes = data.get('postcodes', [])
+#     if not postcodes:
+#         return jsonify({'message': 'No postcodes provided', 'filepath': None}), 400
+
+#     combined_data = pd.DataFrame()
+#     for postcode in postcodes:
+#         result = navigate_and_scrape("https://www.uswitch.com/", postcode)
+#         if result is not None:
+#             combined_data = pd.concat([combined_data, result], ignore_index=True)
+
+#     if not combined_data.empty:
+#         filepath = '/tmp/combined_scraped_data.csv'
+#         combined_data.to_csv(filepath, index=False)
+#         return jsonify({'message': 'Scraping successful', 'filepath': 'combined_scraped_data.csv'})
+#     else:
+#         return jsonify({'message': 'Scraping failed', 'filepath': None}), 500
 
 
 @app.route('/download_csv/<filename>')
