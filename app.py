@@ -527,23 +527,23 @@ def scrape():
     data = request.get_json()
     postcode = data['postcode']
     url = "https://www.uswitch.com/"
+    
+    # Perform scraping
     scraped_data = navigate_and_scrape(url, postcode)
-    combined_data = pd.DataFrame()
-
     if scraped_data is not None:
-        filepath = f'/tmp/scraped_{postcode}.csv'
-        scraped_data.to_csv(filepath, index=False)
-        if scraped_data is not None:
-            combined_data = pd.concat([combined_data, scraped_data], ignore_index=True)
-        if not combined_data.empty:
-            filepath = '/tmp/combined_scraped_data.csv'
-            combined_data.to_csv(filepath, index=False)
-            return jsonify({'message': 'Scraping successful', 'filepath': 'combined_scraped_data.csv'})
+        # Define filepath for combined data
+        filepath = '/tmp/combined_scraped_data.csv'
+        
+        # Check if the combined CSV exists, if not, initialize it
+        if not os.path.exists(filepath):
+            scraped_data.to_csv(filepath, index=False)
         else:
-            return jsonify({'message': 'Scraping failed', 'filepath': None}), 500
-            # return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
-    return jsonify({'message': 'Scraping failed', 'filepath': None})
-
+            # If exists, append without including the header
+            scraped_data.to_csv(filepath, mode='a', header=False, index=False)
+        
+        return jsonify({'message': 'Scraping successful', 'filepath': 'combined_scraped_data.csv'})
+    
+    return jsonify({'message': 'Scraping failed', 'filepath': None}), 500
 # @app.route('/scrape', methods=['POST'])
 # def scrape():
 #     data = request.get_json()
