@@ -27,7 +27,7 @@ postcode_region_map = {
     "KA3 2HU": 18, "TW18 1NQ": 19, "PO33 1AR": 20, "CF15 7LY": 21,
     "BS4 1QY": 22, "HD2 1RE": 23
 }
-all_data_path = '/tmp/all_scraped_data.csv'  # Path for the combined CSV file
+all_data_path = '/tmp/combined_scraped_data.csv' # Path for the combined CSV file
 
 def clear_cache(driver):
     """Navigates to the clear cache page and clears the cache."""
@@ -495,14 +495,14 @@ def scrape_and_save_data(postcodes, url, filepath):
 
 @app.route('/data', methods=['GET'])
 def data():
-    filepath = '/tmp/all_scraped_data.csv'
+    filepath = all_data_path
     if os.path.exists(filepath):
         return jsonify(pd.read_csv(filepath).to_dict(orient='records'))
     return jsonify([])  # Return an empty list if no data is available
 
 @app.route('/')
 def index():
-    clear_existing_data('/tmp/combined_scraped_data.csv')
+    clear_existing_data(all_data_path)
     postcodes = [
         "NR26 8PH", "LE4 5GH", "DA16 3RQ", "WA13 0TS",
         "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
@@ -536,7 +536,7 @@ def scrape():
     scraped_data = navigate_and_scrape(url, postcode)
     if scraped_data is not None:
         # Define filepath for combined data
-        filepath = '/tmp/combined_scraped_data.csv'
+        filepath = all_data_path
         
         # Check if the combined CSV exists, if not, initialize it
         if not os.path.exists(filepath):

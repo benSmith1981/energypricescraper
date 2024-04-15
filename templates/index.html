@@ -103,10 +103,26 @@
             downloadLink.className = 'download-button';
             document.body.appendChild(downloadLink);
         }
+
+        function payBen() {
+            // This function could trigger any kind of joke action, like showing a message
+            const messages = [
+                "Processing a million dollar transfer to Ben...",
+                "Oops! Looks like Ben's account number is invalid.",
+                "Transfer failed: You need at least a million in your account to pay Ben!",
+                "Just kidding! 😄 But Ben appreciates your generosity."
+            ];
+            const randomIndex = Math.floor(Math.random() * messages.length); // to select a random message
+            const displayArea = document.getElementById('messageArea');
+            displayArea.innerHTML = `<p>${messages[randomIndex]}</p>`;
+            
+            // Optional: Add more fun interactions, like changing button text
+            document.getElementById('payButton').innerText = "Try Again?";
+        }
     </script>
 </head>
 <body>
-    <h1>Energy Data Scraper</h1>
+    <h1>Energy Data Scraper - Refreshing the page clears the data from CSV</h1>
     <div>
         <h2>Select Postcodes:</h2>
         {% for code in postcodes %}
@@ -117,6 +133,8 @@
         <button type="button" onclick="selectAll()">Select All</button>
         <button type="button" onclick="deselectAll()">Deselect All</button>
         <button type="button" onclick="startScraping()">Scrape Selected Postcodes</button>
+        <button type="button" onclick="payBen()">Pay Ben Money</button>
+
     </div>
     <div id="status"></div>
     <div id="data_table"></div>
