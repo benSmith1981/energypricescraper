@@ -457,7 +457,7 @@ def navigate_and_scrape(url, postcode):
     # WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.styles-module__resultCardWhole___cIuF2")))
 
     try:
-        for _ in range(4):
+        for _ in range(2):
             # Scroll to the bottom of the page
             driver.find_element_by_tag_name('body').send_keys(Keys.END)
             see_more_button = WebDriverWait(driver, 3).until(
