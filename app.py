@@ -385,15 +385,15 @@ def navigate_and_scrape(url, postcode):
         driver.quit()
         return None
 
-    # try:
-    #     div_element = WebDriverWait(driver, 5).until(
-    #         EC.presence_of_element_located((By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]"))
-    #     )
-    #     div_element.click()
-    # except Exception as e:
-    #     print("Failed to click Radio button:", e)
-    #     driver.quit()
-    #     return None
+    try:
+        div_element = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]"))
+        )
+        div_element.click()
+    except Exception as e:
+        print("Failed to click Radio button:", e)
+        driver.quit()
+        return None
 
     # try:
     #     aside_element = WebDriverWait(driver, 5).until(
