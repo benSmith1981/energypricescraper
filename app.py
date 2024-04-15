@@ -370,20 +370,20 @@ def navigate_and_scrape(url, postcode):
         driver.quit()
         return None
     
-    current_url = driver.current_url  # Get the current URL from the browser
-    modified_url = modify_url_parameter(current_url, 'filter-only-show-fulfillable', 'false')
-    driver.get(modified_url)  # Navigate to the modified URL
+    # current_url = driver.current_url  # Get the current URL from the browser
+    # modified_url = modify_url_parameter(current_url, 'filter-only-show-fulfillable', 'false')
+    # driver.get(modified_url)  # Navigate to the modified URL
     
-    # try:
-    #     filter_button = WebDriverWait(driver, 10).until(
-    #         EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-label='filters-open']"))
-    #     )
-    #     filter_button.click()
-    #     print("Filter button clicked.")
-    # except Exception as e:
-    #     print("Failed to click Filter button:", e)
-    #     driver.quit()
-    #     return None
+    try:
+        filter_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-label='filters-open']"))
+        )
+        filter_button.click()
+        print("Filter button clicked.")
+    except Exception as e:
+        print("Failed to click Filter button:", e)
+        driver.quit()
+        return None
 
     # try:
     #     div_element = WebDriverWait(driver, 5).until(
