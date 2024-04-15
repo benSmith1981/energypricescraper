@@ -260,9 +260,9 @@ def navigate_and_scrape(url, postcode):
                     try:
                         # Option 1: Use the 'value' attribute to find the radio button for Monthly Direct Debit
                         monthly_direct_debit_radio = WebDriverWait(driver, 2).until(
-                            EC.element_to_be_clickable((By.CSS_SELECTOR, "input[type='radio'][value='MONTHLY_DIRECT_DEBIT']"))
+                            EC.element_to_be_clickable((By.XPATH, "//label[contains(text(), 'Monthly Direct Debit')]"))
                         )
-
+  
                         monthly_direct_debit_radio.click()
                         print("How do you pay for your energy? Radio button selected.")
                     except Exception:
