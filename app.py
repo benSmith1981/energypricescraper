@@ -258,9 +258,12 @@ def navigate_and_scrape(url, postcode):
                         
                     # How do you pay for your energy? Select the first radio button if present
                     try:
-                        radio_button = WebDriverWait(driver, 2).until(
-                            EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='radio']")))
-                        radio_button.click()
+                        # Option 1: Use the 'value' attribute to find the radio button for Monthly Direct Debit
+                        monthly_direct_debit_radio = WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((By.CSS_SELECTOR, "input[type='radio'][value='MONTHLY_DIRECT_DEBIT']"))
+                        )
+
+                        monthly_direct_debit_radio.click()
                         print("How do you pay for your energy? Radio button selected.")
                     except Exception:
                         print("How do you pay for your energy? No radio buttons found.")
