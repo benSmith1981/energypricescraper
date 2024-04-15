@@ -385,15 +385,35 @@ def navigate_and_scrape(url, postcode):
         driver.quit()
         return None
 
+    # try:
+    #     div_element = WebDriverWait(driver, 5).until(
+    #         EC.presence_of_element_located((By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]"))
+    #     )
+    #     div_element.click()
+    # except Exception as e:
+    #     print("Failed to click Radio button:", e)
+    #     driver.quit()
+    #     return None
     try:
-        div_element = WebDriverWait(driver, 5).until(
-            EC.presence_of_element_located((By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]"))
+        div_element = WebDriverWait(driver, 10).until(
+            lambda d: d.find_element(By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]").is_displayed() and
+                    d.find_element(By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]").is_enabled()
         )
+
         div_element.click()
+        print("Radio button clicked.")
     except Exception as e:
         print("Failed to click Radio button:", e)
-        driver.quit()
-        return None
+        try:
+            div_element = WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]"))
+            )
+            driver.execute_script("arguments[0].click();", div_element)
+            print("Radio button clicked through JS.")
+        except Exception as e:
+            print("Failed to click Radio button:", e)
+            driver.quit()
+            return None
 
     try:
         aside_element = WebDriverWait(driver, 5).until(
@@ -419,7 +439,7 @@ def navigate_and_scrape(url, postcode):
     #         print("See more results button clicked.")
     # except Exception as e:
     #     print("Failed to click See more results button:", e)
-    
+
     try:
         for _ in range(4):
             # Execute JavaScript to scroll to the bottom of the page
