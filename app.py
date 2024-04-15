@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, Response, jsonify
+from flask import Flask, render_template, request, Response, jsonify, send_from_directory
 from flask_cors import CORS
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -139,33 +139,6 @@ def navigate_and_scrape(url, postcode):
         driver.quit()
         return None
 
-    # # Navigate through conditional screens
-    # reached_email_input = False
-    # attempt_count = 0
-
-    # while not reached_email_input and attempt_count < 10:  # Prevent infinite loops
-    #     attempt_count += 1
-    #     try:
-    #         # Check if the email input or skip button is present on the page
-    #         email_input = WebDriverWait(driver, 2).until(
-    #             EC.presence_of_element_located((By.ID, "email-address-input")))
-    #         email_input.send_keys("tester@gmail.com")
-    #         print("Email entered.")
-    #         reached_email_input = True
-    #         break
-    #     except:
-    #         print("Navigating interactive pages...")
-
-    #         # Handle interaction-required pages
-    #         print("User intervention required. Adjust the browser to the correct state and press Enter to continue...")
-    #         # input("Press Enter in the console to continue once the page is correctly set...")
-    #         print("Resuming automation...")
-
-    # if not reached_email_input:
-    #     print("Failed to navigate through the site automatically.")
-    #     driver.quit()
-    #     return None
-
     # Navigate through conditional screens
     reached_email_input = False
     attempt_count = 0
@@ -179,10 +152,7 @@ def navigate_and_scrape(url, postcode):
         )
         skip_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Skip')]")
         skip_button.click()
-        # skip_button = WebDriverWait(driver, 4).until(
-        #     EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'whitespace-break-spaces') and contains(text(), 'Skip')]"))
-        #     # EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, '/gas-electricity/') and contains(@class, 'ev-1a1odnc')]"))
-        # )
+
         print("Skip button clicked")
     except Exception as e:
         print("Skip not clicked")
@@ -211,8 +181,6 @@ def navigate_and_scrape(url, postcode):
                     continue  # Continue to check for email input again
                 except Exception:
                     print("Skip button not found, checking for radio buttons or continue button.")
-                    # Economy 7 meter question. 'No' option to be clickable and click it
-                    # click_radio_button_by_text(driver, "No")
 
                     try:
                         # Wait for the label associated with the 'No' option to be clickable and click it
@@ -238,7 +206,6 @@ def navigate_and_scrape(url, postcode):
                     
                     # Do you use gas? Wait for the label associated with the 'Yes' option to be clickable and click it
                     # click_radio_button_by_text(driver, "Yes")
-
                     try:
                         # Do you use gas? Wait for the label associated with the 'Yes' option to be clickable and click it
                         WebDriverWait(driver, 2).until(
@@ -263,17 +230,6 @@ def navigate_and_scrape(url, postcode):
                     
                     # Dual Fuel Tarriff: Wait for the label associated with the 'No' option to be clickable and click it
                     click_radio_button_by_text(driver, "No")
-
-                    # try:
-                    #     # Dual Fuel Tarriff: Wait for the label associated with the 'No' option to be clickable and click it
-                    #     WebDriverWait(driver, 2).until(
-                    #         EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='249']"))
-                    #     )
-                    #     no_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='249']")
-                    #     no_option_label.click()
-                    #     print("Dual Fuel Tarriff: 'No' radio button for")
-                    # except Exception as e:
-                    #     print("Dual Fuel Tarriff: Failed to click 'No' radio button:", e)
 
                     # Click the 'Continue' button
                     try:
@@ -325,10 +281,6 @@ def navigate_and_scrape(url, postcode):
                         )
                         skip_button = driver.find_element(By.XPATH, "//button[contains(text(), 'Skip')]")
                         skip_button.click()
-                        # skip_button = WebDriverWait(driver, 4).until(
-                        #     EC.element_to_be_clickable((By.XPATH, "//button[contains(@class, 'whitespace-break-spaces') and contains(text(), 'Skip')]"))
-                        #     # EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, '/gas-electricity/') and contains(@class, 'ev-1a1odnc')]"))
-                        # )
                         print("What's your plan name? Skip button clicked")
                     except Exception as e:
                         print("What's your plan name? Skip not clicked")
@@ -384,16 +336,6 @@ def navigate_and_scrape(url, postcode):
         print("Failed to click Filter button:", e)
         driver.quit()
         return None
-
-    # try:
-    #     div_element = WebDriverWait(driver, 5).until(
-    #         EC.presence_of_element_located((By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]"))
-    #     )
-    #     div_element.click()
-    # except Exception as e:
-    #     print("Failed to click Radio button:", e)
-    #     driver.quit()
-    #     return None
 
     try:
         div_element = WebDriverWait(driver, 5).until(
@@ -599,37 +541,65 @@ def scrape_and_save_data(postcodes, url, filepath):
     save_scraped_data(combined_data, filepath)
     return combined_data
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
-    filepath = '/tmp/scraped_data.csv'
-    data_table = ""
-    all_postcodes = [
+    postcodes = [
         "NR26 8PH", "LE4 5GH", "DA16 3RQ", "WA13 0TS",
         "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
         "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
         "BS4 1QY", "HD2 1RE"
     ]
+    return render_template('index.html', postcodes=postcodes)
 
-    if request.method == 'POST':
-        selected_postcodes = request.form.getlist('postcodes')
-        action = request.form.get('action')
+@app.route('/scrape', methods=['POST'])
+def scrape():
+    data = request.get_json()  # Get data posted as JSON
+    postcode = data['postcode']
+    url = "https://www.uswitch.com/"
+    filepath = f'/tmp/{postcode}.csv'  # Each postcode has its own file to avoid write conflicts
 
-        if action == 'Clear Data':
-            clear_existing_data(filepath)
-            data_table = "Data cleared."
-        elif action == 'Scrape Data':
-            if not selected_postcodes:
-                selected_postcodes = all_postcodes  # Default to all if none are selected
-            url = "https://www.uswitch.com/"
-            clear_existing_data(filepath)  # Optional: Clear data before new scrape
-            scraped_data = scrape_and_save_data(selected_postcodes, url, filepath)
-            data_table = scraped_data.to_html(classes='data', header="true", index=False)
+    scraped_data = navigate_and_scrape(url, postcode)  # Your existing scraping function
+    if scraped_data is not None:
+        scraped_data.to_csv(filepath, index=False)
+        return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
 
-    return render_template('index.html', postcodes=all_postcodes, data_table=data_table)
+    return jsonify({'message': 'Scraping failed', 'filepath': None})
+
+@app.route('/download_csv/<path:filename>', methods=['GET'])
+def download_csv(filename):
+    return send_from_directory(directory='/tmp', filename=filename)
+
+# @app.route('/', methods=['GET', 'POST'])
+# def index():
+#     filepath = '/tmp/scraped_data.csv'
+#     data_table = ""
+#     all_postcodes = [
+#         "NR26 8PH", "LE4 5GH", "DA16 3RQ", "WA13 0TS",
+#         "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
+#         "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
+#         "BS4 1QY", "HD2 1RE"
+#     ]
+
+#     if request.method == 'POST':
+#         selected_postcodes = request.form.getlist('postcodes')
+#         action = request.form.get('action')
+
+#         if action == 'Clear Data':
+#             clear_existing_data(filepath)
+#             data_table = "Data cleared."
+#         elif action == 'Scrape Data':
+#             if not selected_postcodes:
+#                 selected_postcodes = all_postcodes  # Default to all if none are selected
+#             url = "https://www.uswitch.com/"
+#             clear_existing_data(filepath)  # Optional: Clear data before new scrape
+#             scraped_data = scrape_and_save_data(selected_postcodes, url, filepath)
+#             data_table = scraped_data.to_html(classes='data', header="true", index=False)
+
+#     return render_template('index.html', postcodes=all_postcodes, data_table=data_table)
 
 
-@app.route('/download-csv')
-def download_csv():
+@app.route('/download_csv_singlular')
+def download_csv_singlular():
     """Serve the saved CSV file for download."""
     filepath = '/tmp/scraped_data.csv'
     if os.path.exists(filepath):
