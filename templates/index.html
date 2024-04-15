@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Scrape Energy Data</title>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
         function selectAll() {
             var items = document.getElementsByName('postcodes');
@@ -20,26 +19,66 @@
         }
 
         function startScraping() {
-            document.getElementById('status').innerHTML = '<p>Starting scraping...</p>';
+            var selectedPostcodes = [];
             var checkboxes = document.querySelectorAll('input[name="postcodes"]:checked');
-            var postcodes = Array.from(checkboxes).map(cb => cb.value);
+            for (var checkbox of checkboxes) {
+                selectedPostcodes.push(checkbox.value);
+            }
+            scrapePostcodes(selectedPostcodes, 0); // Start scraping with the first postcode
+        }
+
+        function scrapePostcodes(postcodes, index) {
+            if (index < postcodes.length) {
+                scrapePostcode(postcodes[index], () => {
+                    scrapePostcodes(postcodes, index + 1); // Callback to continue the next postcode
+                });
+            } else {
+                document.getElementById('status').innerHTML += '<p>All selected postcodes processed.</p>';
+                addDownloadButton(); // Add the download button only after all postcodes are processed
+            }
+        }
+
+        
+        function scrapePostcode(postcode, callback) {
+            document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
             fetch('/scrape', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({postcodes})
+                body: JSON.stringify({postcode: postcode})
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('status').innerHTML += '<p>All selected postcodes processed.</p>';
-                addDownloadButton();
+                document.getElementById('status').innerHTML += `<p>${data.message}</p>`;
+                if (data.filepath) {
+                    document.getElementById('status').innerHTML += `<a href="/download_csv/${data.filepath.split('/').pop()}">Download ${postcode} data</a><br>`;
+                }
+                callback(); // Proceed to the next postcode
             })
             .catch(error => {
-                document.getElementById('status').innerHTML += `<p>Error processing postcodes: ${error}</p>`;
+                document.getElementById('status').innerHTML += `<p>Error processing ${postcode}: ${error}</p>`;
+                callback(); // Proceed to the next postcode even if there's an error
             });
         }
-
+        function safeAccess(obj, key, defaultValue = '') {
+            return obj.hasOwnProperty(key) ? obj[key] : defaultValue;
+        }
+        function fetchData() {
+            axios.get('/data')
+                .then(response => {
+                    const data = response.data;
+                    let tableHTML = "<table border='1'><tr><th>Region</th><th>Ranking</th><th>Company</th><th>Unit Rate Gas (kWh)</th><th>Standing Charge Gas (Day)</th><th>Unit Rate Elec (kWh)</th><th>Standing Charge Elec (Day)</th><th>Early Exit Fee</th><th>Estimated Annual Cost</th><th>Is Fulfillable</th></tr>";
+                    data.forEach(row => {
+                        tableHTML += `<tr><td>${safeAccess(row, 'Region')}</td><td>${safeAccess(row, 'Ranking')}</td><td>${safeAccess(row, 'Company')}</td><td>${safeAccess(row, 'Unit Rate Gas (kWh)', 'N/A')}</td><td>${safeAccess(row, 'Standing Charge Gas (Day)', 'N/A')}</td><td>${safeAccess(row, 'Unit Rate Elec (kWh)', 'N/A')}</td><td>${safeAccess(row, 'Standing Charge Elec (Day)', 'N/A')}</td><td>${safeAccess(row, 'Early Exit Fee', 'N/A')}</td><td>${safeAccess(row, 'Estimated Annual Cost', 'N/A')}</td><td>${safeAccess(row, 'Is Fulfillable', 'N/A')}</td></tr>`;
+                    });
+                    tableHTML += "</table>";
+                    document.getElementById('data_table').innerHTML = tableHTML;
+                })
+                .catch(error => {
+                    document.getElementById('data_table').innerHTML = "Failed to fetch data.";
+                });
+        }
         function addDownloadButton() {
             var downloadLink = document.createElement('a');
             downloadLink.href = '/download_csv/all_scraped_data.csv';
@@ -63,5 +102,6 @@
         <button type="button" onclick="startScraping()">Scrape Selected Postcodes</button>
     </div>
     <div id="status"></div>
+    <div id="data_table"></div>
 </body>
 </html>
