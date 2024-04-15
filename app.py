@@ -27,6 +27,8 @@ postcode_region_map = {
     "KA3 2HU": 18, "TW18 1NQ": 19, "PO33 1AR": 20, "CF15 7LY": 21,
     "BS4 1QY": 22, "HD2 1RE": 23
 }
+all_data_path = '/tmp/all_scraped_data.csv'  # Path for the combined CSV file
+
 def clear_cache(driver):
     """Navigates to the clear cache page and clears the cache."""
     driver.get('chrome://settings/clearBrowserData')
@@ -528,8 +530,11 @@ def clear_existing_data(filepath):
         os.remove(filepath)
 
 def save_scraped_data(dataframe, filepath):
-    """Save scraped data to a CSV file, overwriting any existing data."""
-    dataframe.to_csv(filepath, index=False)
+    """Save scraped data to a CSV file, appending if file exists."""
+    if os.path.exists(filepath):
+        dataframe.to_csv(filepath, mode='a', header=False, index=False)
+    else:
+        dataframe.to_csv(filepath, index=False)
 
 def scrape_and_save_data(postcodes, url, filepath):
     """Scrape data for a list of postcodes and save to a CSV file."""
@@ -549,25 +554,43 @@ def index():
         "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
         "BS4 1QY", "HD2 1RE"
     ]
+    # clear_existing_data(all_data_path)
     return render_template('index.html', postcodes=postcodes)
 
+# @app.route('/scrape', methods=['POST'])
+# def scrape():
+#     data = request.get_json()  # Get data posted as JSON
+#     postcode = data['postcode']
+#     url = "https://www.uswitch.com/"
+#     filepath = f'/tmp/{postcode}.csv'  # Each postcode has its own file to avoid write conflicts
+
+#     scraped_data = navigate_and_scrape(url, postcode)  # Your existing scraping function
+#     if scraped_data is not None:
+#         scraped_data.to_csv(filepath, index=False)
+#         return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
+
+#     return jsonify({'message': 'Scraping failed', 'filepath': None})
 @app.route('/scrape', methods=['POST'])
 def scrape():
-    data = request.get_json()  # Get data posted as JSON
+    data = request.get_json()
     postcode = data['postcode']
     url = "https://www.uswitch.com/"
-    filepath = f'/tmp/{postcode}.csv'  # Each postcode has its own file to avoid write conflicts
 
-    scraped_data = navigate_and_scrape(url, postcode)  # Your existing scraping function
+    # Assuming navigate_and_scrape returns a DataFrame
+    scraped_data = navigate_and_scrape(url, postcode)
     if scraped_data is not None:
-        scraped_data.to_csv(filepath, index=False)
-        return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
+        save_scraped_data(scraped_data, all_data_path)
+        return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': all_data_path})
 
     return jsonify({'message': 'Scraping failed', 'filepath': None})
 
-@app.route('/download_csv/<path:filename>', methods=['GET'])
-def download_csv(filename):
-    return send_from_directory(directory='/tmp', filename=filename)
+# @app.route('/download_csv/<path:filename>', methods=['GET'])
+# def download_csv(filename):
+#     return send_from_directory(directory='/tmp', filename=filename)
+
+@app.route('/download_csv', methods=['GET'])
+def download_csv():
+    return send_from_directory(directory='/tmp', filename='all_scraped_data.csv', as_attachment=True)
 
 # @app.route('/', methods=['GET', 'POST'])
 # def index():

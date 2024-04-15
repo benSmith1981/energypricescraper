@@ -22,6 +22,11 @@
     </script>
 </head>
 <body>
+    <h1>Postcode Data Scraper</h1>
+    <button onclick="startScraping()">Scrape All Postcodes</button>
+    <div id="status"></div>
+
+
     <h1>Energy Data Scraper</h1>
     <form method="POST">
         <div>
@@ -37,14 +42,10 @@
         <button type="submit" name="action" value="Scrape Data">Scrape Data</button>
         <button type="submit" name="action" value="Clear Data">Clear Data</button>
     </form>
-    <h1>Postcode Data Scraper</h1>
-    <button onclick="startScraping()">Scrape All Postcodes</button>
-    <div id="status"></div>
-
-
-    <h2>Scraped Data</h2>
+    <h2>Scraped Data With Individual</h2>
     <div>{{ data_table|safe }}</div>
     <a href="{{ url_for('download_csv_singlular') }}">Download CSV</a>
+
 
     <script>
         let postcodes = {{ postcodes | tojson }};
@@ -57,6 +58,27 @@
                 document.getElementById('status').innerHTML += '<p>All postcodes processed.</p>';
             }
         }
+        // function scrapePostcode(postcode) {
+        //     document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
+        //     fetch('/scrape', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify({postcode: postcode})
+        //     })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         document.getElementById('status').innerHTML += `<p>${data.message}</p>`;
+        //         current++;
+        //         startScraping();  // Trigger the next postcode
+        //     })
+        //     .catch(error => {
+        //         document.getElementById('status').innerHTML += `<p>Error processing ${postcode}: ${error}</p>`;
+        //         current++;
+        //         startScraping();
+        //     });
+        // }
 
         function scrapePostcode(postcode) {
             document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
