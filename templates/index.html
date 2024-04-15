@@ -39,12 +39,8 @@
             <button type="button" onclick="selectAll()">Select All</button>
             <button type="button" onclick="deselectAll()">Deselect All</button>
         </div>
-        <button type="submit" name="action" value="Scrape Data">Scrape Data</button>
         <button type="submit" name="action" value="Clear Data">Clear Data</button>
     </form>
-    <h2>Scraped Data With Individual</h2>
-    <div>{{ data_table|safe }}</div>
-    <a href="{{ url_for('download_csv') }}">Download Combined CSV</a>
 
     <script>
         let postcodes = {{ postcodes | tojson }};

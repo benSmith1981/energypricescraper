@@ -589,9 +589,16 @@ def scrape():
 # def download_csv(filename):
 #     return send_from_directory(directory='/tmp', filename=filename)
 
-@app.route('/download_csv', methods=['GET'])
-def download_csv():
-    return send_from_directory(directory='/tmp', filename='all_scraped_data.csv', as_attachment=True)
+# @app.route('/download_csv', methods=['GET'])
+# def download_csv():
+#     return send_from_directory(directory='/tmp', filename='all_scraped_data.csv', as_attachment=True)
+@app.route('/download_csv/<filename>')
+def download_csv(filename):
+    directory = '/tmp'
+    try:
+        return send_from_directory(directory, filename, as_attachment=True)
+    except FileNotFoundError:
+        return jsonify({'error': 'File not found'}), 404
 
 # @app.route('/', methods=['GET', 'POST'])
 # def index():
@@ -622,13 +629,13 @@ def download_csv():
 #     return render_template('index.html', postcodes=all_postcodes, data_table=data_table)
 
 
-@app.route('/download_csv_singlular')
-def download_csv_singlular():
-    """Serve the saved CSV file for download."""
-    filepath = '/tmp/scraped_data.csv'
-    if os.path.exists(filepath):
-        return Response(open(filepath, 'r'), mimetype='text/csv', headers={"Content-Disposition": "attachment;filename=energy_plans.csv"})
-    return "No data available for download."
+# @app.route('/download_csv_singlular')
+# def download_csv_singlular():
+#     """Serve the saved CSV file for download."""
+#     filepath = '/tmp/scraped_data.csv'
+#     if os.path.exists(filepath):
+#         return Response(open(filepath, 'r'), mimetype='text/csv', headers={"Content-Disposition": "attachment;filename=energy_plans.csv"})
+#     return "No data available for download."
 
 if __name__ == '__main__':
     app.run(debug=True)
