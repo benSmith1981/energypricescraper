@@ -449,6 +449,8 @@ def navigate_and_scrape(url, postcode):
             
             see_more_button.click()
             print("See more results button clicked.")
+            time.sleep(2)  # slight delay to wait for the page to load more results if necessary
+
     except Exception as e:
         print("Failed to click See more results button:", e)
         try:
