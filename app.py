@@ -489,7 +489,7 @@ def navigate_and_scrape(url, postcode):
 
     # time.sleep(3)  # Wait for the results page to load completely
     # Ensure we wait for all necessary elements to load
-    WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.styles-module__resultCardWhole___cIuF2")))
+    # WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.styles-module__resultCardWhole___cIuF2")))
 
     data = scrape_data(driver,postcode)
     driver.quit()
