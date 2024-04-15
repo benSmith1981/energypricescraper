@@ -363,42 +363,6 @@ def navigate_and_scrape(url, postcode):
         print("Failed to click Show results button using JavaScript:", e)
         driver.quit()
         return None
-    # try:
-    #     div_element = WebDriverWait(driver, 10).until(
-    #         lambda d: d.find_element(By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]").is_displayed() and
-    #                 d.find_element(By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]").is_enabled()
-    #     )
-
-    #     div_element.click()
-    #     print("Radio button clicked.")
-    # except Exception as e:
-    #     print("Failed to click Radio button:", e)
-
-
-    # try:
-    #     aside_element = WebDriverWait(driver, 5).until(
-    #         EC.presence_of_element_located((By.CSS_SELECTOR, "aside[aria-label='Dialog: results page filters']"))
-    #     )
-    #     show_results_button = aside_element.find_element(By.CSS_SELECTOR, "button[type='submit']")
-    #     show_results_button.click()
-    #     print("Show results button clicked.")
-    # except Exception as e:
-    #     try:
-    #         aside_element = WebDriverWait(driver, 5).until(
-    #             EC.presence_of_element_located((By.CSS_SELECTOR, "aside[aria-label='Dialog: results page filters']"))
-    #         )
-    #         show_results_button = aside_element.find_element(By.CSS_SELECTOR, "button[type='submit']")
-            
-    #         # Using JavaScript to perform the click action
-    #         driver.execute_script("arguments[0].click();", show_results_button)
-    #         print("Show results button clicked using JavaScript.")
-    #     except Exception as e:
-    #         print("Failed to click Show results button using JavaScript:", e)
-    #         driver.quit()
-    #         return None
-
-    # Ensure we wait for all necessary elements to load
-    # WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.styles-module__resultCardWhole___cIuF2")))
 
     try:
         for _ in range(2):
@@ -414,26 +378,6 @@ def navigate_and_scrape(url, postcode):
 
     except Exception as e:
         print("Failed to click See more results button:", e)
-        # try:
-        #     for _ in range(4):
-        #         # Execute JavaScript to scroll to the bottom of the page
-        #         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                
-        #         # Wait for the button to be clickable after the scroll
-        #         see_more_button = WebDriverWait(driver, 3).until(
-        #             EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
-        #         )
-                
-        #         see_more_button.click()
-        #         print("See more results button clicked.")
-        #         time.sleep(2)  # slight delay to wait for the page to load more results if necessary
-
-        # except Exception as e:
-        #     print("Failed to click See more results button:", e)
-
-    # time.sleep(3)  # Wait for the results page to load completely
-    # Ensure we wait for all necessary elements to load
-    # WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.styles-module__resultCardWhole___cIuF2")))
 
     data = scrape_data(driver,postcode)
     driver.quit()
@@ -578,19 +522,36 @@ def index():
 
 #     return jsonify({'message': 'Scraping failed', 'filepath': None})
 
+# @app.route('/scrape', methods=['POST'])
+# def scrape():
+#     data = request.get_json()
+#     postcode = data['postcode']
+#     url = "https://www.uswitch.com/"
+#     scraped_data = navigate_and_scrape(url, postcode)
+#     if scraped_data is not None:
+#         filepath = f'/tmp/scraped_{postcode}.csv'
+#         scraped_data.to_csv(filepath, index=False)
+#         # data_table = scraped_data.to_html(classes='data', header="true", index=False)
+#         return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
+#     return jsonify({'message': 'Scraping failed', 'filepath': None})
+
 @app.route('/scrape', methods=['POST'])
 def scrape():
     data = request.get_json()
-    postcode = data['postcode']
-    url = "https://www.uswitch.com/"
-    scraped_data = navigate_and_scrape(url, postcode)
-    if scraped_data is not None:
-        filepath = f'/tmp/scraped_{postcode}.csv'
-        scraped_data.to_csv(filepath, index=False)
-        # data_table = scraped_data.to_html(classes='data', header="true", index=False)
-        return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
-    return jsonify({'message': 'Scraping failed', 'filepath': None})
-
+    postcodes = data.get('postcodes', [])
+    combined_data = pd.DataFrame()
+    
+    for postcode in postcodes:
+        # Assuming navigate_and_scrape() returns a DataFrame or None
+        result = navigate_and_scrape("https://www.uswitch.com/", postcode)
+        if result is not None:
+            combined_data = pd.concat([combined_data, result], ignore_index=True)
+    
+    if not combined_data.empty:
+        combined_data.to_csv('/tmp/combined_scraped_data.csv', index=False)
+        return jsonify({'message': 'Scraping successful', 'filepath': 'combined_scraped_data.csv'})
+    else:
+        return jsonify({'message': 'Scraping failed', 'filepath': None}), 500
 
 @app.route('/download_csv/<filename>')
 def download_csv(filename):
