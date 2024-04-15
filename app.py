@@ -449,28 +449,30 @@ def navigate_and_scrape(url, postcode):
             
             see_more_button.click()
             print("See more results button clicked.")
-            time.sleep(2)  # slight delay to wait for the page to load more results if necessary
+            # time.sleep(2)  # slight delay to wait for the page to load more results if necessary
 
     except Exception as e:
         print("Failed to click See more results button:", e)
-        try:
-            for _ in range(4):
-                # Execute JavaScript to scroll to the bottom of the page
-                driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        # try:
+        #     for _ in range(4):
+        #         # Execute JavaScript to scroll to the bottom of the page
+        #         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 
-                # Wait for the button to be clickable after the scroll
-                see_more_button = WebDriverWait(driver, 3).until(
-                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
-                )
+        #         # Wait for the button to be clickable after the scroll
+        #         see_more_button = WebDriverWait(driver, 3).until(
+        #             EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
+        #         )
                 
-                see_more_button.click()
-                print("See more results button clicked.")
-                time.sleep(2)  # slight delay to wait for the page to load more results if necessary
+        #         see_more_button.click()
+        #         print("See more results button clicked.")
+        #         time.sleep(2)  # slight delay to wait for the page to load more results if necessary
 
-        except Exception as e:
-            print("Failed to click See more results button:", e)
+        # except Exception as e:
+        #     print("Failed to click See more results button:", e)
 
-    time.sleep(3)  # Wait for the results page to load completely
+    # time.sleep(3)  # Wait for the results page to load completely
+    # Ensure we wait for all necessary elements to load
+    WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.styles-module__resultCardWhole___cIuF2")))
 
     data = scrape_data(driver,postcode)
     driver.quit()
