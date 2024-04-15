@@ -37,6 +37,7 @@
             }
         }
 
+        
         function scrapePostcode(postcode, callback) {
             document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
             fetch('/scrape', {
@@ -59,6 +60,24 @@
                 callback(); // Proceed to the next postcode even if there's an error
             });
         }
+        function safeAccess(obj, key, defaultValue = '') {
+            return obj.hasOwnProperty(key) ? obj[key] : defaultValue;
+        }
+        function fetchData() {
+            axios.get('/data')
+                .then(response => {
+                    const data = response.data;
+                    let tableHTML = "<table border='1'><tr><th>Region</th><th>Ranking</th><th>Company</th><th>Unit Rate Gas (kWh)</th><th>Standing Charge Gas (Day)</th><th>Unit Rate Elec (kWh)</th><th>Standing Charge Elec (Day)</th><th>Early Exit Fee</th><th>Estimated Annual Cost</th><th>Is Fulfillable</th></tr>";
+                    data.forEach(row => {
+                        tableHTML += `<tr><td>${safeAccess(row, 'Region')}</td><td>${safeAccess(row, 'Ranking')}</td><td>${safeAccess(row, 'Company')}</td><td>${safeAccess(row, 'Unit Rate Gas (kWh)', 'N/A')}</td><td>${safeAccess(row, 'Standing Charge Gas (Day)', 'N/A')}</td><td>${safeAccess(row, 'Unit Rate Elec (kWh)', 'N/A')}</td><td>${safeAccess(row, 'Standing Charge Elec (Day)', 'N/A')}</td><td>${safeAccess(row, 'Early Exit Fee', 'N/A')}</td><td>${safeAccess(row, 'Estimated Annual Cost', 'N/A')}</td><td>${safeAccess(row, 'Is Fulfillable', 'N/A')}</td></tr>`;
+                    });
+                    tableHTML += "</table>";
+                    document.getElementById('data_table').innerHTML = tableHTML;
+                })
+                .catch(error => {
+                    document.getElementById('data_table').innerHTML = "Failed to fetch data.";
+                });
+        }
     </script>
 </head>
 <body>
@@ -75,5 +94,7 @@
         <button type="button" onclick="startScraping()">Scrape Selected Postcodes</button>
     </div>
     <div id="status"></div>
+    <div id="data_table"></div>
+    <a href="/download_csv">Download Compiled CSV</a>
 </body>
 </html>

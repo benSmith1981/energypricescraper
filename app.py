@@ -546,14 +546,20 @@ def scrape_and_save_data(postcodes, url, filepath):
     save_scraped_data(combined_data, filepath)
     return combined_data
 
+@app.route('/data', methods=['GET'])
+def data():
+    filepath = '/tmp/all_scraped_data.csv'
+    if os.path.exists(filepath):
+        return jsonify(pd.read_csv(filepath).to_dict(orient='records'))
+    return jsonify([])  # Return an empty list if no data is available
+
 @app.route('/')
 def index():
     postcodes = [
-        "NR26 8PH", "LE4 5GH"
-        # , "DA16 3RQ", "WA13 0TS",
-        # "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
-        # "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
-        # "BS4 1QY", "HD2 1RE"
+        "NR26 8PH", "LE4 5GH", "DA16 3RQ", "WA13 0TS",
+        "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
+        "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
+        "BS4 1QY", "HD2 1RE"
     ]
     # clear_existing_data(all_data_path)
     return render_template('index.html', postcodes=postcodes)
@@ -577,16 +583,21 @@ def scrape():
     data = request.get_json()
     postcode = data['postcode']
     url = "https://www.uswitch.com/"
-
-    # Here, navigate_and_scrape is your function that takes a URL and a postcode and returns a DataFrame.
     scraped_data = navigate_and_scrape(url, postcode)
     if scraped_data is not None:
-        # Assuming you're saving each result to prevent data loss in case of a crash
         filepath = f'/tmp/scraped_{postcode}.csv'
         scraped_data.to_csv(filepath, index=False)
         return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
-
     return jsonify({'message': 'Scraping failed', 'filepath': None})
+
+@app.route('/compiled_data')
+def compiled_data():
+    # This assumes you have a single file that is being appended to
+    filepath = '/tmp/all_scraped_data.csv'
+    if os.path.exists(filepath):
+        df = pd.read_csv(filepath)
+        return jsonify(df.to_dict(orient='records'))  # Convert dataframe to dictionary for easy JSON handling
+    return jsonify([])  # Return an empty list if no data is available
 
 # @app.route('/download_csv/<path:filename>', methods=['GET'])
 # def download_csv(filename):
