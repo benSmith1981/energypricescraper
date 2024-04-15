@@ -386,60 +386,38 @@ def navigate_and_scrape(url, postcode):
         return None
 
     try:
-        # Wait for the filters modal to be visible
-        WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "aside[aria-label='Dialog: results page filters']")))
-
-        # Optimize element search by using more precise selectors
-        filter_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, "//input[@name='filters.onlyShowFulfillable'][@value='false']/following-sibling::svg"))
+        div_element = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]"))
         )
-
-        # Click using ActionChains
-        ActionChains(driver).move_to_element(filter_button).click(filter_button).perform()
-
-        print("Filter option toggled successfully.")
-
+        div_element.click()
     except Exception as e:
-        print("Failed to find the radio button within the specified timeout period.", str(e))
-    except Exception as e:
-        print("An error occurred:", str(e))
-    finally:
-        # Add a delay to see what happens
-        input("Press any key to exit...")
+        print("Failed to click Radio button:", e)
         driver.quit()
-    # try:
-    #     div_element = WebDriverWait(driver, 5).until(
-    #         EC.presence_of_element_located((By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]"))
-    #     )
-    #     div_element.click()
-    # except Exception as e:
-    #     print("Failed to click Radio button:", e)
-    #     driver.quit()
-    #     return None
+        return None
 
-    # try:
-    #     aside_element = WebDriverWait(driver, 5).until(
-    #         EC.presence_of_element_located((By.CSS_SELECTOR, "aside[aria-label='Dialog: results page filters']"))
-    #     )
-    #     show_results_button = aside_element.find_element(By.CSS_SELECTOR, "button[type='submit']")
-    #     show_results_button.click()
-    #     print("Show results button clicked.")
-    # except Exception as e:
-    #     print("Failed to click Show results button:", e)
-    #     driver.quit()
-    #     return None
+    try:
+        aside_element = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "aside[aria-label='Dialog: results page filters']"))
+        )
+        show_results_button = aside_element.find_element(By.CSS_SELECTOR, "button[type='submit']")
+        show_results_button.click()
+        print("Show results button clicked.")
+    except Exception as e:
+        print("Failed to click Show results button:", e)
+        driver.quit()
+        return None
 
-    # try:
-    #     for _ in range(4):
-    #         see_more_button = WebDriverWait(driver, 3).until(
-    #             EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
-    #         )
-    #         # Scroll to the bottom of the page
-    #         driver.find_element_by_tag_name('body').send_keys(Keys.END)
-    #         see_more_button.click()
-    #         print("See more results button clicked.")
-    # except Exception as e:
-    #     print("Failed to click See more results button:", e)
+    try:
+        for _ in range(4):
+            see_more_button = WebDriverWait(driver, 3).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
+            )
+            # Scroll to the bottom of the page
+            driver.find_element_by_tag_name('body').send_keys(Keys.END)
+            see_more_button.click()
+            print("See more results button clicked.")
+    except Exception as e:
+        print("Failed to click See more results button:", e)
 
     time.sleep(3)  # Wait for the results page to load completely
 
