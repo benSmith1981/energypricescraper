@@ -549,10 +549,11 @@ def scrape_and_save_data(postcodes, url, filepath):
 @app.route('/')
 def index():
     postcodes = [
-        "NR26 8PH", "LE4 5GH", "DA16 3RQ", "WA13 0TS",
-        "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
-        "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
-        "BS4 1QY", "HD2 1RE"
+        "NR26 8PH", "LE4 5GH"
+        # , "DA16 3RQ", "WA13 0TS",
+        # "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
+        # "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
+        # "BS4 1QY", "HD2 1RE"
     ]
     # clear_existing_data(all_data_path)
     return render_template('index.html', postcodes=postcodes)

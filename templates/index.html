@@ -44,8 +44,7 @@
     </form>
     <h2>Scraped Data With Individual</h2>
     <div>{{ data_table|safe }}</div>
-    <a href="{{ url_for('download_csv_singlular') }}">Download CSV</a>
-
+    <a href="{{ url_for('download_csv') }}">Download Combined CSV</a>
 
     <script>
         let postcodes = {{ postcodes | tojson }};
@@ -58,27 +57,6 @@
                 document.getElementById('status').innerHTML += '<p>All postcodes processed.</p>';
             }
         }
-        // function scrapePostcode(postcode) {
-        //     document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
-        //     fetch('/scrape', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //         body: JSON.stringify({postcode: postcode})
-        //     })
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         document.getElementById('status').innerHTML += `<p>${data.message}</p>`;
-        //         current++;
-        //         startScraping();  // Trigger the next postcode
-        //     })
-        //     .catch(error => {
-        //         document.getElementById('status').innerHTML += `<p>Error processing ${postcode}: ${error}</p>`;
-        //         current++;
-        //         startScraping();
-        //     });
-        // }
 
         function scrapePostcode(postcode) {
             document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
@@ -93,7 +71,7 @@
             .then(data => {
                 document.getElementById('status').innerHTML += `<p>${data.message}</p>`;
                 if (data.filepath) {
-                    document.getElementById('status').innerHTML += `<a href="/download/${data.filepath.split('/').pop()}">Download ${postcode} data</a><br>`;
+                    document.getElementById('status').innerHTML += `<a href="/download_csv/${data.filepath.split('/').pop()}">Download ${postcode} data</a><br>`;
                 }
                 current++;
                 startScraping();  // Trigger the next postcode
@@ -104,7 +82,6 @@
                 startScraping();
             });
         }
-
     </script>
 </body>
 </html>
