@@ -7,6 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
+from urllib.parse import urlparse, parse_qs, urlunparse, urlencode
 
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -369,16 +370,20 @@ def navigate_and_scrape(url, postcode):
         driver.quit()
         return None
     
-    try:
-        filter_button = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-label='filters-open']"))
-        )
-        filter_button.click()
-        print("Filter button clicked.")
-    except Exception as e:
-        print("Failed to click Filter button:", e)
-        driver.quit()
-        return None
+    current_url = driver.current_url  # Get the current URL from the browser
+    modified_url = modify_url_parameter(current_url, 'filter-only-show-fulfillable', 'false')
+    driver.get(modified_url)  # Navigate to the modified URL
+    
+    # try:
+    #     filter_button = WebDriverWait(driver, 10).until(
+    #         EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-label='filters-open']"))
+    #     )
+    #     filter_button.click()
+    #     print("Filter button clicked.")
+    # except Exception as e:
+    #     print("Failed to click Filter button:", e)
+    #     driver.quit()
+    #     return None
 
     # try:
     #     div_element = WebDriverWait(driver, 5).until(
@@ -422,6 +427,19 @@ def navigate_and_scrape(url, postcode):
         data.to_csv('/tmp/scraped_data.csv', index=False)  # Save to temporary file
     return data
 
+def modify_url_parameter(url, param_name, new_value):
+    """
+    Modify the specified parameter to a new value in the URL.
+    """
+    url_parts = list(urlparse(url))
+    query = parse_qs(url_parts[4])
+    query[param_name] = new_value  # Update the parameter with the new value
+    
+    # Properly encode the query dictionary back into a URL-encoded query string.
+    # The doseq=True argument is used to ensure that individual parameter values
+    # that are lists get correctly encoded as separate key-value pairs.
+    url_parts[4] = urlencode(query, doseq=True)
+    return urlunparse(url_parts)
 
 import json
 import re
