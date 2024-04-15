@@ -3,6 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <title>Scrape Energy Data</title>
+    <script>
+        function selectAll() {
+            var items = document.getElementsByName('postcodes');
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].type == 'checkbox')
+                    items[i].checked = true;
+            }
+        }
+
+        function deselectAll() {
+            var items = document.getElementsByName('postcodes');
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].type == 'checkbox')
+                    items[i].checked = false;
+            }
+        }
+    </script>
 </head>
 <body>
     <h1>Energy Data Scraper</h1>
@@ -14,6 +31,8 @@
                 <input type="checkbox" name="postcodes" value="{{ code }}" checked>{{ code }}
             </label><br>
             {% endfor %}
+            <button type="button" onclick="selectAll()">Select All</button>
+            <button type="button" onclick="deselectAll()">Deselect All</button>
         </div>
         <button type="submit" name="action" value="Scrape Data">Scrape Data</button>
         <button type="submit" name="action" value="Clear Data">Clear Data</button>
