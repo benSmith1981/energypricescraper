@@ -394,50 +394,67 @@ def navigate_and_scrape(url, postcode):
     #     print("Failed to click Radio button:", e)
     #     driver.quit()
     #     return None
-    try:
-        div_element = WebDriverWait(driver, 10).until(
-            lambda d: d.find_element(By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]").is_displayed() and
-                    d.find_element(By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]").is_enabled()
-        )
 
-        div_element.click()
-        print("Radio button clicked.")
+    try:
+        div_element = WebDriverWait(driver, 5).until(
+            EC.presence_of_element_located((By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]"))
+        )
+        driver.execute_script("arguments[0].click();", div_element)
+        print("Radio button clicked through JS.")
     except Exception as e:
         print("Failed to click Radio button:", e)
-        try:
-            div_element = WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located((By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]"))
-            )
-            driver.execute_script("arguments[0].click();", div_element)
-            print("Radio button clicked through JS.")
-        except Exception as e:
-            print("Failed to click Radio button:", e)
-            driver.quit()
-            return None
-
+        driver.quit()
+        return None
+    
     try:
         aside_element = WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.CSS_SELECTOR, "aside[aria-label='Dialog: results page filters']"))
         )
         show_results_button = aside_element.find_element(By.CSS_SELECTOR, "button[type='submit']")
-        show_results_button.click()
-        print("Show results button clicked.")
+        
+        # Using JavaScript to perform the click action
+        driver.execute_script("arguments[0].click();", show_results_button)
+        print("Show results button clicked using JavaScript.")
     except Exception as e:
-        try:
-            aside_element = WebDriverWait(driver, 5).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "aside[aria-label='Dialog: results page filters']"))
-            )
-            show_results_button = aside_element.find_element(By.CSS_SELECTOR, "button[type='submit']")
+        print("Failed to click Show results button using JavaScript:", e)
+        driver.quit()
+        return None
+    # try:
+    #     div_element = WebDriverWait(driver, 10).until(
+    #         lambda d: d.find_element(By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]").is_displayed() and
+    #                 d.find_element(By.XPATH, "//aside[@aria-label='Dialog: results page filters']//div[contains(text(), 'Include plans that require switching directly through the supplier')]").is_enabled()
+    #     )
+
+    #     div_element.click()
+    #     print("Radio button clicked.")
+    # except Exception as e:
+    #     print("Failed to click Radio button:", e)
+
+
+    # try:
+    #     aside_element = WebDriverWait(driver, 5).until(
+    #         EC.presence_of_element_located((By.CSS_SELECTOR, "aside[aria-label='Dialog: results page filters']"))
+    #     )
+    #     show_results_button = aside_element.find_element(By.CSS_SELECTOR, "button[type='submit']")
+    #     show_results_button.click()
+    #     print("Show results button clicked.")
+    # except Exception as e:
+    #     try:
+    #         aside_element = WebDriverWait(driver, 5).until(
+    #             EC.presence_of_element_located((By.CSS_SELECTOR, "aside[aria-label='Dialog: results page filters']"))
+    #         )
+    #         show_results_button = aside_element.find_element(By.CSS_SELECTOR, "button[type='submit']")
             
-            # Using JavaScript to perform the click action
-            driver.execute_script("arguments[0].click();", show_results_button)
-            print("Show results button clicked using JavaScript.")
-        except Exception as e:
-            print("Failed to click Show results button using JavaScript:", e)
-            driver.quit()
-            return None
+    #         # Using JavaScript to perform the click action
+    #         driver.execute_script("arguments[0].click();", show_results_button)
+    #         print("Show results button clicked using JavaScript.")
+    #     except Exception as e:
+    #         print("Failed to click Show results button using JavaScript:", e)
+    #         driver.quit()
+    #         return None
+
     # Ensure we wait for all necessary elements to load
-    WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.styles-module__resultCardWhole___cIuF2")))
+    # WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div.styles-module__resultCardWhole___cIuF2")))
 
     try:
         for _ in range(4):
