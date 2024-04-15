@@ -581,14 +581,15 @@ def index():
 @app.route('/scrape', methods=['POST'])
 def scrape():
     data = request.get_json()
-    postcode = data['postcode']
-    url = "https://www.uswitch.com/"
-    scraped_data = navigate_and_scrape(url, postcode)
-    if scraped_data is not None:
-        filepath = f'/tmp/scraped_{postcode}.csv'
-        scraped_data.to_csv(filepath, index=False)
-        return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
-    return jsonify({'message': 'Scraping failed', 'filepath': None})
+    postcodes = data['postcodes']
+    combined_df = pd.DataFrame()
+
+    for postcode in postcodes:
+        result = navigate_and_scrape(postcode)
+        combined_df = pd.concat([combined_df, result], ignore_index=True)
+
+    combined_df.to_csv('/tmp/all_scraped_data.csv', index=False)
+    return jsonify({'message': 'Data scraped successfully for all selected postcodes'})
 
 @app.route('/compiled_data')
 def compiled_data():
@@ -599,13 +600,7 @@ def compiled_data():
         return jsonify(df.to_dict(orient='records'))  # Convert dataframe to dictionary for easy JSON handling
     return jsonify([])  # Return an empty list if no data is available
 
-# @app.route('/download_csv/<path:filename>', methods=['GET'])
-# def download_csv(filename):
-#     return send_from_directory(directory='/tmp', filename=filename)
 
-# @app.route('/download_csv', methods=['GET'])
-# def download_csv():
-#     return send_from_directory(directory='/tmp', filename='all_scraped_data.csv', as_attachment=True)
 @app.route('/download_csv/<filename>')
 def download_csv(filename):
     directory = '/tmp'
