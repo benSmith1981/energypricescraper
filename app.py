@@ -260,7 +260,7 @@ def navigate_and_scrape(url, postcode):
                     try:
                         # Option 1: Use the 'value' attribute to find the radio button for Monthly Direct Debit
                         monthly_direct_debit_radio = WebDriverWait(driver, 2).until(
-                            EC.element_to_be_clickable((By.XPATH, "//label[contains(text(), 'Monthly Direct Debit')]"))
+                            EC.element_to_be_clickable((By.XPATH, "//label[.//div[contains(text(), 'Monthly Direct Debit')]]//input[@type='radio']"))
                         )
   
                         monthly_direct_debit_radio.click()
