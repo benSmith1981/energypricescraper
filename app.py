@@ -436,11 +436,15 @@ def extract_tariff_data(driver):
     script_content = None
 
     # Find the script containing the required JSON state
+    
     for script in soup.find_all("script"):
-        if 'window.__initialState__=' in script.text:
-            script_content = script.text
+        if script.contents:
+            script_content = script.contents[0]  # Access the first item of contents
             break
-
+        # if 'window.__initialState__=' in script.text:
+        #     script_content = script.text
+        #     break
+    print(script_content)
     if not script_content:
         return {
             "Electricity Day Rate": "N/A",
@@ -507,7 +511,7 @@ def scrape_data(driver, postcode):
     tariff_data = extract_tariff_data(driver)
     if "error" in tariff_data:
         print(tariff_data["error"])  # Log error to console or handle it as needed
-        return pd.DataFrame()  # Return an empty DataFrame or handle error appropriately
+        # return pd.DataFrame()  # Return an empty DataFrame or handle error appropriately
 
     data_list = []
     for index, card in enumerate(cards, start=1):
