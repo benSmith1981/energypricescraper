@@ -430,12 +430,60 @@ def extract_fulfillable_data(driver):
 
     return fulfillable_data
 
+# Function to extract rates and charges
+def extract_tariff_data(driver):
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
+    script_content = None
+
+    # Find the script containing the required JSON state
+    for script in soup.find_all("script"):
+        if 'window.__initialState__=' in script.text:
+            script_content = script.text
+            break
+
+    if not script_content:
+        return "No relevant script found"
+
+    # Extract JSON from script
+    try:
+        json_str = script_content.split('=', 1)[1]  # Split on the first '=' and take the second part
+        json_data = json.loads(json_str)
+    except Exception as e:
+        return f"Error parsing JSON: {e}"
+
+    # Define a container for our extracted data
+    extracted_data = {
+        "Electricity Day Rate": "N/A",
+        "Electricity Night Rate": "N/A",
+        "Electricity Standing Charge": "N/A",
+        "Gas Rate": "N/A",
+        "Gas Standing Charge": "N/A"
+    }
+
+    # Example extraction logic
+    # This needs to be adapted based on actual JSON structure and required fields
+    try:
+        plans = json_data["MultiComparison"]["comparisonPlans"]
+        for plan in plans:
+            if plan["__typename"] == "MultiComparisonPlan":
+                elec = plan["electricity"]
+                gas = plan["gas"]
+                extracted_data["Electricity Day Rate"] = next((rate["price"] for rate in elec["tariffRate"] if not rate["nightRate"]), "N/A")
+                extracted_data["Electricity Night Rate"] = next((rate["price"] for rate in elec["tariffRate"] if rate["nightRate"]), "N/A")
+                extracted_data["Electricity Standing Charge"] = elec["standingCharge"]
+                extracted_data["Gas Rate"] = next((rate["price"] for rate in gas["tariffRate"] if not rate["nightRate"]), "N/A")
+                extracted_data["Gas Standing Charge"] = gas["standingCharge"]
+    except KeyError as e:
+        return f"Key error: {e}"
+
+    return extracted_data
 
 def scrape_data(driver, postcode):
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     cards = soup.select('div.styles-module__resultCardWhole___cIuF2')
     region = postcode_region_map.get(postcode, 'Unknown')
     fulfillable_data = extract_fulfillable_data(driver)
+    tariff_data = extract_tariff_data(driver)
 
     data_list = []
     for index, card in enumerate(cards, start=1):
@@ -466,7 +514,12 @@ def scrape_data(driver, postcode):
             'Standing Charge Elec (Day)': unit_rates[3],
             'Early Exit Fee': early_exit_fee,
             'Estimated Annual Cost': annual_cost,
-            'Is Fulfillable': is_fulfillable
+            'Is Fulfillable': is_fulfillable,
+            'Electricity Day Rate (p/kWh)': tariff_data["Electricity Day Rate"],
+            'Electricity Night Rate (p/kWh)': tariff_data["Electricity Night Rate"],
+            'Electricity Standing Charge (p/day)': tariff_data["Electricity Standing Charge"],
+            'Gas Rate (p/kWh)': tariff_data["Gas Rate"],
+            'Gas Standing Charge (p/day)': tariff_data["Gas Standing Charge"]
         })
 
     return pd.DataFrame(data_list)
@@ -512,19 +565,6 @@ def index():
     # clear_existing_data(all_data_path)
     return render_template('index.html', postcodes=postcodes)
 
-# @app.route('/scrape', methods=['POST'])
-# def scrape():
-#     data = request.get_json()  # Get data posted as JSON
-#     postcode = data['postcode']
-#     url = "https://www.uswitch.com/"
-#     filepath = f'/tmp/{postcode}.csv'  # Each postcode has its own file to avoid write conflicts
-
-#     scraped_data = navigate_and_scrape(url, postcode)  # Your existing scraping function
-#     if scraped_data is not None:
-#         scraped_data.to_csv(filepath, index=False)
-#         return jsonify({'message': f'Scraping successful for {postcode}', 'filepath': filepath})
-
-#     return jsonify({'message': 'Scraping failed', 'filepath': None})
 
 @app.route('/scrape', methods=['POST'])
 def scrape():
@@ -548,25 +588,6 @@ def scrape():
         return jsonify({'message': 'Scraping successful', 'filepath': 'combined_scraped_data.csv'})
     
     return jsonify({'message': 'Scraping failed', 'filepath': None}), 500
-# @app.route('/scrape', methods=['POST'])
-# def scrape():
-#     data = request.get_json()
-#     postcodes = data.get('postcodes', [])
-#     if not postcodes:
-#         return jsonify({'message': 'No postcodes provided', 'filepath': None}), 400
-
-#     combined_data = pd.DataFrame()
-#     for postcode in postcodes:
-#         result = navigate_and_scrape("https://www.uswitch.com/", postcode)
-#         if result is not None:
-#             combined_data = pd.concat([combined_data, result], ignore_index=True)
-
-#     if not combined_data.empty:
-#         filepath = '/tmp/combined_scraped_data.csv'
-#         combined_data.to_csv(filepath, index=False)
-#         return jsonify({'message': 'Scraping successful', 'filepath': 'combined_scraped_data.csv'})
-#     else:
-#         return jsonify({'message': 'Scraping failed', 'filepath': None}), 500
 
 
 @app.route('/download_csv/<filename>')
@@ -580,40 +601,3 @@ def download_csv(filename):
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-# @app.route('/', methods=['GET', 'POST'])
-# def index():
-#     filepath = '/tmp/scraped_data.csv'
-#     data_table = ""
-#     all_postcodes = [
-#         "NR26 8PH", "LE4 5GH", "DA16 3RQ", "WA13 0TS",
-#         "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
-#         "KA3 2HU", "TW18 1NQ", "PO33 1AR", "CF15 7LY",
-#         "BS4 1QY", "HD2 1RE"
-#     ]
-
-#     if request.method == 'POST':
-#         selected_postcodes = request.form.getlist('postcodes')
-#         action = request.form.get('action')
-
-#         if action == 'Clear Data':
-#             clear_existing_data(filepath)
-#             data_table = "Data cleared."
-#         elif action == 'Scrape Data':
-#             if not selected_postcodes:
-#                 selected_postcodes = all_postcodes  # Default to all if none are selected
-#             url = "https://www.uswitch.com/"
-#             clear_existing_data(filepath)  # Optional: Clear data before new scrape
-#             scraped_data = scrape_and_save_data(selected_postcodes, url, filepath)
-#             data_table = scraped_data.to_html(classes='data', header="true", index=False)
-
-#     return render_template('index.html', postcodes=all_postcodes, data_table=data_table)
-
-
-# @app.route('/download_csv_singlular')
-# def download_csv_singlular():
-#     """Serve the saved CSV file for download."""
-#     filepath = '/tmp/scraped_data.csv'
-#     if os.path.exists(filepath):
-#         return Response(open(filepath, 'r'), mimetype='text/csv', headers={"Content-Disposition": "attachment;filename=energy_plans.csv"})
-#     return "No data available for download."
