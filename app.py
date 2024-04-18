@@ -443,7 +443,7 @@ def extract_tariff_data(driver):
                     # Extract the JSON object from the script
                     json_str = re.search(r'window.__initialState__=(\{.*?\});', content, re.DOTALL).group(1)
                     json_data = json.loads(json_str)
-
+                    print(json_str)
                     # Initialize a container for our extracted data
                     extracted_data = {
                         "Electricity Day Rate": "N/A",
