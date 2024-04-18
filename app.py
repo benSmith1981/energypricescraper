@@ -432,74 +432,57 @@ def extract_fulfillable_data(driver):
     return fulfillable_data
 
 def extract_tariff_data(driver):
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
-    content = None
+    from bs4 import BeautifulSoup
+    import re
+    import json
 
-    # Find the script containing the required JSON state
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
     
+    # Find the script containing the required JSON state
     for script in soup.find_all("script"):
         if script.contents:
             content = script.contents[0]  # Access the first item of contents
-            break
-        if 'window.__initialState__=' in content:
-            script_content = script.text
-            print(script_content)
-            if not script_content:
-                return {
-                    "Electricity Day Rate": "N/A",
-                    "Electricity Night Rate": "N/A",
-                    "Electricity Standing Charge": "N/A",
-                    "Gas Rate": "N/A",
-                    "Gas Standing Charge": "N/A",
-                    "error": "No relevant script found"
-                }
+            if 'window.__initialState__=' in content:
+                try:
+                    # Extract the JSON object from the script
+                    json_str = re.search(r'window.__initialState__=(\{.*?\});', content, re.DOTALL).group(1)
+                    json_data = json.loads(json_str)
 
-            # Extract JSON from script
-            try:
-                json_str = script_content.split('=', 1)[1]  # Split on the first '=' and take the second part
-                json_data = json.loads(json_str)
-            except Exception as e:
-                return {
-                    "Electricity Day Rate": "N/A",
-                    "Electricity Night Rate": "N/A",
-                    "Electricity Standing Charge": "N/A",
-                    "Gas Rate": "N/A",
-                    "Gas Standing Charge": "N/A",
-                    "error": f"Error parsing JSON: {e}"
-                }
+                    # Initialize a container for our extracted data
+                    extracted_data = {
+                        "Electricity Day Rate": "N/A",
+                        "Electricity Night Rate": "N/A",
+                        "Electricity Standing Charge": "N/A",
+                        "Gas Rate": "N/A",
+                        "Gas Standing Charge": "N/A"
+                    }
 
-            # Define a container for our extracted data
-            extracted_data = {
-                "Electricity Day Rate": "N/A",
-                "Electricity Night Rate": "N/A",
-                "Electricity Standing Charge": "N/A",
-                "Gas Rate": "N/A",
-                "Gas Standing Charge": "N/A"
-            }
+                    # Attempt to extract data based on JSON structure
+                    plans = json_data["MultiComparison"]["comparisonPlans"]
+                    for plan in plans:
+                        if plan["__typename"] == "MultiComparisonPlan":
+                            elec = plan["electricity"]
+                            gas = plan["gas"]
+                            extracted_data["Electricity Day Rate"] = next((rate["price"] for rate in elec["tariffRate"] if not rate["nightRate"]), "N/A")
+                            extracted_data["Electricity Night Rate"] = next((rate["price"] for rate in elec["tariffRate"] if rate["nightRate"]), "N/A")
+                            extracted_data["Electricity Standing Charge"] = elec["standingCharge"]
+                            extracted_data["Gas Rate"] = next((rate["price"] for rate in gas["tariffRate"] if not rate["nightRate"]), "N/A")
+                            extracted_data["Gas Standing Charge"] = gas["standingCharge"]
+                    return extracted_data
 
-            # Attempt to extract data based on JSON structure
-            try:
-                plans = json_data["MultiComparison"]["comparisonPlans"]
-                for plan in plans:
-                    if plan["__typename"] == "MultiComparisonPlan":
-                        elec = plan["electricity"]
-                        gas = plan["gas"]
-                        extracted_data["Electricity Day Rate"] = next((rate["price"] for rate in elec["tariffRate"] if not rate["nightRate"]), "N/A")
-                        extracted_data["Electricity Night Rate"] = next((rate["price"] for rate in elec["tariffRate"] if rate["nightRate"]), "N/A")
-                        extracted_data["Electricity Standing Charge"] = elec["standingCharge"]
-                        extracted_data["Gas Rate"] = next((rate["price"] for rate in gas["tariffRate"] if not rate["nightRate"]), "N/A")
-                        extracted_data["Gas Standing Charge"] = gas["standingCharge"]
-            except KeyError as e:
-                return {
-                    "Electricity Day Rate": "N/A",
-                    "Electricity Night Rate": "N/A",
-                    "Electricity Standing Charge": "N/A",
-                    "Gas Rate": "N/A",
-                    "Gas Standing Charge": "N/A",
-                    "error": f"Key error: {e}"
-                }
+                except json.JSONDecodeError as e:
+                    return {
+                        "error": f"Error parsing JSON: {e}"
+                    }
+                except KeyError as e:
+                    return {
+                        "error": f"Key error: {e}"
+                    }
 
-            return extracted_data
+    return {
+        "error": "No relevant script found"
+    }
+
 
 
 def scrape_data(driver, postcode):
