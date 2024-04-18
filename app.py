@@ -520,12 +520,12 @@ def scrape_data(driver, postcode):
             'Standing Charge Elec (Day)': unit_rates[3],
             'Early Exit Fee': early_exit_fee,
             'Estimated Annual Cost': annual_cost,
-            'Is Fulfillable': is_fulfillable,
-            'Electricity Day Rate (p/kWh)': tariff_data["Electricity Day Rate"],
-            'Electricity Night Rate (p/kWh)': tariff_data["Electricity Night Rate"],
-            'Electricity Standing Charge (p/day)': tariff_data["Electricity Standing Charge"],
-            'Gas Rate (p/kWh)': tariff_data["Gas Rate"],
-            'Gas Standing Charge (p/day)': tariff_data["Gas Standing Charge"]
+            'Is Fulfillable': is_fulfillable
+            # 'Electricity Day Rate (p/kWh)': tariff_data["Electricity Day Rate"],
+            # 'Electricity Night Rate (p/kWh)': tariff_data["Electricity Night Rate"],
+            # 'Electricity Standing Charge (p/day)': tariff_data["Electricity Standing Charge"],
+            # 'Gas Rate (p/kWh)': tariff_data["Gas Rate"],
+            # 'Gas Standing Charge (p/day)': tariff_data["Gas Standing Charge"]
         })
 
     return pd.DataFrame(data_list)
