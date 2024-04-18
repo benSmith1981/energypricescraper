@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <title>Scrape Energy Data</title>
     <script>
+        const loadingMessages = [
+            "Aligning Covariance Matrices", "Applying Feng Shui Shaders", "Aesthesizing Industrial Areas",
+            "Breeding Fauna", "Calibrating Blue Skies", "Charging Ozone Layer", "Coalescing Cloud Formations",
+            "Collecting Meteor Particles", "Compressing Fish Files", "Computing Optimal Bin Packing",
+            "Concatenating Sub-Contractors", "Decrementing Tectonic Plates", "Deleting Ferry Routes",
+            "Depixelating Inner Mountain Surface Back Faces", "Destabilizing Economic Indicators",
+            "Downloading Satellite Terrain Data", "Exposing Flash Variables to Streak System",
+            "Factoring Pay Scale", "Fixing Election Outcome Matrix", "Graphing Whale Migration",
+            "Implementing Impeachment Routine", "Increasing Magmafacation", "Normalizing Power",
+            "Obfuscating Quigley Matrix", "Polishing Water Highlights", "Projecting Law Enforcement Pastry Intake",
+            "Reconfiguring User Mental Processes", "Relaxing Splines", "Removing Texture Gradients",
+            "Resolving GUID Conflict", "Reticulating Splines", "Routing Neural Network Infrastructure",
+            "Scrubbing Terrain", "Seeding Architecture Simulation Parameters", "Synthesizing Gravity"
+        ];
         function selectAll() {
             var items = document.getElementsByName('postcodes');
             for (var i = 0; i < items.length; i++) {
@@ -41,6 +55,10 @@
 
         
         function scrapePostcode(postcode, callback) {
+            var messageIndex = Math.floor(Math.random() * loadingMessages.length);
+            var loadingMessage = loadingMessages[messageIndex];
+            document.getElementById('status').innerHTML += `<p>Processing ${postcode}... <span class='loading-wheel'></span></p><p>${loadingMessage}</p>`;
+            
             document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
             fetch('/scrape', {
                 method: 'POST',

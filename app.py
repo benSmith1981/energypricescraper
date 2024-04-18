@@ -430,7 +430,6 @@ def extract_fulfillable_data(driver):
 
     return fulfillable_data
 
-# Function to extract rates and charges
 def extract_tariff_data(driver):
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     script_content = None
@@ -442,14 +441,28 @@ def extract_tariff_data(driver):
             break
 
     if not script_content:
-        return "No relevant script found"
+        return {
+            "Electricity Day Rate": "N/A",
+            "Electricity Night Rate": "N/A",
+            "Electricity Standing Charge": "N/A",
+            "Gas Rate": "N/A",
+            "Gas Standing Charge": "N/A",
+            "error": "No relevant script found"
+        }
 
     # Extract JSON from script
     try:
         json_str = script_content.split('=', 1)[1]  # Split on the first '=' and take the second part
         json_data = json.loads(json_str)
     except Exception as e:
-        return f"Error parsing JSON: {e}"
+        return {
+            "Electricity Day Rate": "N/A",
+            "Electricity Night Rate": "N/A",
+            "Electricity Standing Charge": "N/A",
+            "Gas Rate": "N/A",
+            "Gas Standing Charge": "N/A",
+            "error": f"Error parsing JSON: {e}"
+        }
 
     # Define a container for our extracted data
     extracted_data = {
@@ -460,8 +473,7 @@ def extract_tariff_data(driver):
         "Gas Standing Charge": "N/A"
     }
 
-    # Example extraction logic
-    # This needs to be adapted based on actual JSON structure and required fields
+    # Attempt to extract data based on JSON structure
     try:
         plans = json_data["MultiComparison"]["comparisonPlans"]
         for plan in plans:
@@ -474,9 +486,17 @@ def extract_tariff_data(driver):
                 extracted_data["Gas Rate"] = next((rate["price"] for rate in gas["tariffRate"] if not rate["nightRate"]), "N/A")
                 extracted_data["Gas Standing Charge"] = gas["standingCharge"]
     except KeyError as e:
-        return f"Key error: {e}"
-    print(extracted_data)
+        return {
+            "Electricity Day Rate": "N/A",
+            "Electricity Night Rate": "N/A",
+            "Electricity Standing Charge": "N/A",
+            "Gas Rate": "N/A",
+            "Gas Standing Charge": "N/A",
+            "error": f"Key error: {e}"
+        }
+
     return extracted_data
+
 
 def scrape_data(driver, postcode):
     soup = BeautifulSoup(driver.page_source, 'html.parser')
