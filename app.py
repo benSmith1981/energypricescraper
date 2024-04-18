@@ -184,17 +184,17 @@ def navigate_and_scrape(url, postcode):
                 except Exception:
                     print("Skip button not found, checking for radio buttons or continue button.")
 
-                    # click_radio_button_by_text(driver, "Yes")
-                    try:
-                        # Wait for the label associated with the 'yes' option to be clickable and click it
-                        WebDriverWait(driver, 2).until(
-                            EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='7']"))
-                        )
-                        no_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='7']")
-                        no_option_label.click()
-                        print("Clicked 'yes' radio button for the Economy 7 meter question.")
-                    except Exception as e:
-                        print("Failed to click 'yees' radio button:", e)
+                    click_radio_button_by_text(driver, "Yes")
+                    # try:
+                    #     # Wait for the label associated with the 'yes' option to be clickable and click it
+                    #     WebDriverWait(driver, 2).until(
+                    #         EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='7']"))
+                    #     )
+                    #     no_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='7']")
+                    #     no_option_label.click()
+                    #     print("Clicked 'yes' radio button for the Economy 7 meter question.")
+                    # except Exception as e:
+                    #     print("Failed to click 'yees' radio button:", e)
 
                     # Click the 'Continue' button
                     try:
@@ -208,17 +208,17 @@ def navigate_and_scrape(url, postcode):
                         return None
                     
                     # Do you use gas? Wait for the label associated with the 'Yes' option to be clickable and click it
-                    # click_radio_button_by_text(driver, "Yes")
-                    try:
-                        # Do you use gas? Wait for the label associated with the 'Yes' option to be clickable and click it
-                        WebDriverWait(driver, 2).until(
-                            EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='249']"))
-                        )
-                        yes_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='249']")
-                        yes_option_label.click()
-                        print("Do you use gas? 'Yes' .")
-                    except Exception as e:
-                        print("Failed to click 'Yes' option for Do you use gas?:", e)
+                    click_radio_button_by_text(driver, "Yes")
+                    # try:
+                    #     # Do you use gas? Wait for the label associated with the 'Yes' option to be clickable and click it
+                    #     WebDriverWait(driver, 2).until(
+                    #         EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='38']"))
+                    #     )
+                    #     yes_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='38']")
+                    #     yes_option_label.click()
+                    #     print("Do you use gas? 'Yes' .")
+                    # except Exception as e:
+                    #     print("Failed to click 'Yes' option for Do you use gas?:", e)
                     
                     # Click the 'Continue' button
                     try:
