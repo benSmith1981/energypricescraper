@@ -486,9 +486,9 @@ def scrape_data(driver, postcode):
     cards = soup.select('div.styles-module__resultCardWhole___cIuF2')
     region = postcode_region_map.get(postcode, 'Unknown')
     fulfillable_data = extract_fulfillable_data(driver)
-    tariff_data = extract_tariff_data(driver)
-    if "error" in tariff_data:
-        print(tariff_data["error"])  # Log error to console or handle it as needed
+    # tariff_data = extract_tariff_data(driver)
+    # if "error" in tariff_data:
+    #     print(tariff_data["error"])  # Log error to console or handle it as needed
         # return pd.DataFrame()  # Return an empty DataFrame or handle error appropriately
 
     data_list = []
