@@ -432,10 +432,6 @@ def extract_fulfillable_data(driver):
     return fulfillable_data
 
 def extract_tariff_data(driver):
-    from bs4 import BeautifulSoup
-    import re
-    import json
-
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     
     # Find the script containing the required JSON state
