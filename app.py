@@ -184,16 +184,17 @@ def navigate_and_scrape(url, postcode):
                 except Exception:
                     print("Skip button not found, checking for radio buttons or continue button.")
 
-                    try:
-                        # Wait for the label associated with the 'No' option to be clickable and click it
-                        WebDriverWait(driver, 2).until(
-                            EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='8']"))
-                        )
-                        no_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='8']")
-                        no_option_label.click()
-                        print("Clicked 'No' radio button for the Economy 7 meter question.")
-                    except Exception as e:
-                        print("Failed to click 'No' radio button:", e)
+                    click_radio_button_by_text(driver, "Yes")
+                    # try:
+                    #     # Wait for the label associated with the 'No' option to be clickable and click it
+                    #     WebDriverWait(driver, 2).until(
+                    #         EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='8']"))
+                    #     )
+                    #     no_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='8']")
+                    #     no_option_label.click()
+                    #     print("Clicked 'No' radio button for the Economy 7 meter question.")
+                    # except Exception as e:
+                    #     print("Failed to click 'No' radio button:", e)
 
                     # Click the 'Continue' button
                     try:
@@ -504,6 +505,9 @@ def scrape_data(driver, postcode):
     region = postcode_region_map.get(postcode, 'Unknown')
     fulfillable_data = extract_fulfillable_data(driver)
     tariff_data = extract_tariff_data(driver)
+    if "error" in tariff_data:
+        print(tariff_data["error"])  # Log error to console or handle it as needed
+        return pd.DataFrame()  # Return an empty DataFrame or handle error appropriately
 
     data_list = []
     for index, card in enumerate(cards, start=1):

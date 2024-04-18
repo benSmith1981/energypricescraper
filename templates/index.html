@@ -3,20 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <title>Scrape Energy Data</title>
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-wheel {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 2s linear infinite;
+        }
+    </style>
+    
     <script>
         const loadingMessages = [
-            "Aligning Covariance Matrices", "Applying Feng Shui Shaders", "Aesthesizing Industrial Areas",
-            "Breeding Fauna", "Calibrating Blue Skies", "Charging Ozone Layer", "Coalescing Cloud Formations",
-            "Collecting Meteor Particles", "Compressing Fish Files", "Computing Optimal Bin Packing",
-            "Concatenating Sub-Contractors", "Decrementing Tectonic Plates", "Deleting Ferry Routes",
-            "Depixelating Inner Mountain Surface Back Faces", "Destabilizing Economic Indicators",
-            "Downloading Satellite Terrain Data", "Exposing Flash Variables to Streak System",
-            "Factoring Pay Scale", "Fixing Election Outcome Matrix", "Graphing Whale Migration",
-            "Implementing Impeachment Routine", "Increasing Magmafacation", "Normalizing Power",
-            "Obfuscating Quigley Matrix", "Polishing Water Highlights", "Projecting Law Enforcement Pastry Intake",
-            "Reconfiguring User Mental Processes", "Relaxing Splines", "Removing Texture Gradients",
-            "Resolving GUID Conflict", "Reticulating Splines", "Routing Neural Network Infrastructure",
-            "Scrubbing Terrain", "Seeding Architecture Simulation Parameters", "Synthesizing Gravity"
+            "Aligning energy tariffs...", "Applying voltage adjustments...", "Calibrating gas pressure...",
+            "Coalescing cloud data formations...", "Compressing historical energy data...", "Concatenating tariff structures...",
+            "Debunching unionized power services...", "Decomposing fossil fuels...", "Downloading solar radiation data...",
+            "Estimating peak demand periods...", "Graphing renewable energy outputs...", "Integrating smart grid analytics...",
+            "Normalizing power fluctuations...", "Obfuscating utility grid matrix...", "Polishing wind turbine data...",
+            "Predicting future energy rates...", "Reticulating splines of power grid...", "Routing neural network infrastructure...",
+            "Scrubbing carbon emission data...", "Sequencing biofuel algorithms...", "Synthesizing renewable energy trends..."
         ];
         function selectAll() {
             var items = document.getElementsByName('postcodes');
@@ -57,8 +67,8 @@
         function scrapePostcode(postcode, callback) {
             var messageIndex = Math.floor(Math.random() * loadingMessages.length);
             var loadingMessage = loadingMessages[messageIndex];
-            document.getElementById('status').innerHTML += `<p>Processing ${postcode}... <span class='loading-wheel'></span></p><p>${loadingMessage}</p>`;
-            
+            document.getElementById('status').innerHTML += `<p>Processing ${postcode}... <span class='loading-wheel'></span> ${loadingMessage}</p>`;
+
             document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
             fetch('/scrape', {
                 method: 'POST',
