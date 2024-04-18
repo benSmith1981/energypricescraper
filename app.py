@@ -475,7 +475,7 @@ def extract_tariff_data(driver):
                 extracted_data["Gas Standing Charge"] = gas["standingCharge"]
     except KeyError as e:
         return f"Key error: {e}"
-
+    print(extracted_data)
     return extracted_data
 
 def scrape_data(driver, postcode):
