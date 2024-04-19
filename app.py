@@ -184,17 +184,17 @@ def navigate_and_scrape(url, postcode):
                 except Exception:
                     print("Skip button not found, checking for radio buttons or continue button.")
 
-                    click_radio_button_by_text(driver, "Yes")
-                    # try:
-                    #     # Wait for the label associated with the 'yes' option to be clickable and click it
-                    #     WebDriverWait(driver, 2).until(
-                    #         EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='7']"))
-                    #     )
-                    #     no_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='7']")
-                    #     no_option_label.click()
-                    #     print("Clicked 'yes' radio button for the Economy 7 meter question.")
-                    # except Exception as e:
-                    #     print("Failed to click 'yees' radio button:", e)
+                    # click_radio_button_by_text(driver, "Yes")
+                    try:
+                        # Wait for the label associated with the 'yes' option to be clickable and click it
+                        WebDriverWait(driver, 2).until(
+                            EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='8']"))
+                        )
+                        no_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='8']")
+                        no_option_label.click()
+                        print("Clicked 'no' radio button for the Economy 7 meter question.")
+                    except Exception as e:
+                        print("Failed to click 'no' radio button:", e)
 
                     # Click the 'Continue' button
                     try:
