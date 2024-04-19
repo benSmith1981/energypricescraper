@@ -106,7 +106,7 @@
             var loadingMessage = loadingMessages[messageIndex];
             document.getElementById('status').innerHTML += `<p>Processing ${postcode}... <span class='loading-wheel'></span> ${loadingMessage}</p>`;
 
-            document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
+            // document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
             fetch('/scrape', {
                 method: 'POST',
                 headers: {
@@ -116,7 +116,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('status').innerHTML += `<p>${data.message}</p>`;
+                // document.getElementById('status').innerHTML += `<p>${data.message}</p>`;
                 if (data.filepath) {
                     document.getElementById('status').innerHTML += `<a href="/download_csv/${data.filepath.split('/').pop()}">Download ${postcode} data</a><br>`;
                 }
