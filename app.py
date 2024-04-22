@@ -556,6 +556,7 @@ def scrape_data(driver, postcode):
         gas_unit_rate = unit_rates[0]
         gas_standing_charge = unit_rates[1]
 
+        # complete info
         data_list.append({
             'Region': region,
             'Ranking': index,
