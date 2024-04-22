@@ -184,16 +184,17 @@ def navigate_and_scrape(url, postcode):
                 except Exception:
                     print("Skip button not found, checking for radio buttons or continue button.")
 
-                    try:
-                        # Wait for the label associated with the 'No' option to be clickable and click it
-                        WebDriverWait(driver, 2).until(
-                            EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='8']"))
-                        )
-                        no_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='8']")
-                        no_option_label.click()
-                        print("Clicked 'No' radio button for the Economy 7 meter question.")
-                    except Exception as e:
-                        print("Failed to click 'No' radio button:", e)
+                    # try:
+                    #     # Wait for the label associated with the 'No' option to be clickable and click it
+                    #     WebDriverWait(driver, 2).until(
+                    #         EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='8']"))
+                    #     )
+                    #     no_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='8']")
+                    #     no_option_label.click()
+                    #     print("Clicked 'No' radio button for the Economy 7 meter question.")
+                    # except Exception as e:
+                    #     print("Failed to click 'No' radio button:", e)
+                    click_radio_button_by_text(driver, "Yes")
 
                     # Click the 'Continue' button
                     try:
@@ -207,17 +208,17 @@ def navigate_and_scrape(url, postcode):
                         return None
                     
                     # Do you use gas? Wait for the label associated with the 'Yes' option to be clickable and click it
-                    # click_radio_button_by_text(driver, "Yes")
-                    try:
-                        # Do you use gas? Wait for the label associated with the 'Yes' option to be clickable and click it
-                        WebDriverWait(driver, 2).until(
-                            EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='249']"))
-                        )
-                        yes_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='249']")
-                        yes_option_label.click()
-                        print("Do you use gas? 'Yes' .")
-                    except Exception as e:
-                        print("Failed to click 'Yes' option for Do you use gas?:", e)
+                    click_radio_button_by_text(driver, "Yes")
+                    # try:
+                    #     # Do you use gas? Wait for the label associated with the 'Yes' option to be clickable and click it
+                    #     WebDriverWait(driver, 2).until(
+                    #         EC.element_to_be_clickable((By.CSS_SELECTOR, "label[for='249']"))
+                    #     )
+                    #     yes_option_label = driver.find_element(By.CSS_SELECTOR, "label[for='249']")
+                    #     yes_option_label.click()
+                    #     print("Do you use gas? 'Yes' .")
+                    # except Exception as e:
+                    #     print("Failed to click 'Yes' option for Do you use gas?:", e)
                     
                     # Click the 'Continue' button
                     try:
@@ -371,7 +372,7 @@ def navigate_and_scrape(url, postcode):
         for _ in range(2):
             # Scroll to the bottom of the page
             driver.find_element_by_tag_name('body').send_keys(Keys.END)
-            see_more_button = WebDriverWait(driver, 3).until(
+            see_more_button = WebDriverWait(driver, 5).until(
                 EC.element_to_be_clickable((By.CSS_SELECTOR, "button[data-event-action='show-more-plans']"))
             )
             
@@ -431,11 +432,101 @@ def extract_fulfillable_data(driver):
     return fulfillable_data
 
 
+def extract_tariff_data(driver):
+    soup = BeautifulSoup(driver.page_source, 'html.parser')
+    
+    # Find the script containing the required JSON state
+    for script in soup.find_all("script"):
+        if script.contents:
+            content = script.contents[0]  # Access the first item of contents
+            # Modified regex to capture until a semi-colon that seems to be a terminator of the JSON object
+            match = re.search(r'window.__initialState__=(.*?);</script>', content, re.DOTALL)
+            if match:
+                print(match)
+                print(content)
+                json_str = match.group(1)
+                print(json_str)  # Debug print to verify the JSON string
+                json_data = json.loads(json_str)
+
+                # Initialize a container for our extracted data
+                extracted_data = {
+                    "Electricity Day Rate": "N/A",
+                    "Electricity Night Rate": "N/A",
+                    "Electricity Standing Charge": "N/A",
+                    "Gas Rate": "N/A",
+                    "Gas Standing Charge": "N/A"
+                }
+
+                # Attempt to extract data based on JSON structure
+                plans = json_data.get("MultiComparison", {}).get("comparisonPlans", [])
+                for plan in plans:
+                    if plan.get("__typename") == "MultiComparisonPlan":
+                        elec = plan.get("electricity", {})
+                        gas = plan.get("gas", {})
+                        extracted_data["Electricity Day Rate"] = elec.get("dayRate", "N/A")
+                        extracted_data["Electricity Night Rate"] = elec.get("nightRate", "N/A")
+                        extracted_data["Electricity Standing Charge"] = elec.get("standingCharge", "N/A")
+                        extracted_data["Gas Rate"] = gas.get("rate", "N/A")
+                        extracted_data["Gas Standing Charge"] = gas.get("standingCharge", "N/A")
+                
+                return extracted_data
+            else:
+                print("No valid JSON state found in the scripts.")
+# def extract_tariff_data(driver):
+#     soup = BeautifulSoup(driver.page_source, 'html.parser')
+    
+#     # Find the script containing the required JSON state
+#     for script in soup.find_all("script"):
+#         if script.contents:
+#             content = script.contents[0]  # Access the first item of contents
+#             if 'window.__initialState__=' in content:
+#                 try:
+#                     # Extract the JSON object from the script
+#                     json_str = re.search(r'window.__initialState__=(\{.*?\});', content, re.DOTALL).group(1)
+#                     json_data = json.loads(json_str)
+#                     print(json_str)
+#                     # Initialize a container for our extracted data
+#                     extracted_data = {
+#                         "Electricity Day Rate": "N/A",
+#                         "Electricity Night Rate": "N/A",
+#                         "Electricity Standing Charge": "N/A",
+#                         "Gas Rate": "N/A",
+#                         "Gas Standing Charge": "N/A"
+#                     }
+
+#                     # Attempt to extract data based on JSON structure
+#                     plans = json_data["MultiComparison"]["comparisonPlans"]
+#                     for plan in plans:
+#                         if plan["__typename"] == "MultiComparisonPlan":
+#                             elec = plan["electricity"]
+#                             gas = plan["gas"]
+#                             extracted_data["Electricity Day Rate"] = next((rate["price"] for rate in elec["tariffRate"] if not rate["nightRate"]), "N/A")
+#                             extracted_data["Electricity Night Rate"] = next((rate["price"] for rate in elec["tariffRate"] if rate["nightRate"]), "N/A")
+#                             extracted_data["Electricity Standing Charge"] = elec["standingCharge"]
+#                             extracted_data["Gas Rate"] = next((rate["price"] for rate in gas["tariffRate"] if not rate["nightRate"]), "N/A")
+#                             extracted_data["Gas Standing Charge"] = gas["standingCharge"]
+#                     return extracted_data
+
+#                 except json.JSONDecodeError as e:
+#                     return {
+#                         "error": f"Error parsing JSON: {e}"
+#                     }
+#                 except KeyError as e:
+#                     return {
+#                         "error": f"Key error: {e}"
+#                     }
+
+#     return {
+#         "error": "No relevant script found"
+#     }
+
 def scrape_data(driver, postcode):
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     cards = soup.select('div.styles-module__resultCardWhole___cIuF2')
     region = postcode_region_map.get(postcode, 'Unknown')
     fulfillable_data = extract_fulfillable_data(driver)
+    # tariff_data = extract_tariff_data(driver)
+    # print("tariff_data ${tariff_data}")
 
     data_list = []
     for index, card in enumerate(cards, start=1):
@@ -456,20 +547,41 @@ def scrape_data(driver, postcode):
                 is_fulfillable = fulfillable
                 break
 
+        # Extracting day and night rates for electricity
+        electricity_unit_rate_day = unit_rates[4] if len(unit_rates) >= 5 else 'Unknown'
+        electricity_unit_rate_night = unit_rates[5] if len(unit_rates) >= 6 else 'Unknown'
+        electricity_standing_charge = unit_rates[6] if len(unit_rates) >= 7 else 'Unknown'
+
+        # Extracting gas rates
+        gas_unit_rate = unit_rates[0]
+        gas_standing_charge = unit_rates[1]
+
         data_list.append({
             'Region': region,
             'Ranking': index,
             'Company': company,
-            'Unit Rate Gas (kWh)': unit_rates[0],
-            'Standing Charge Gas (Day)': unit_rates[1],
-            'Unit Rate Elec (kWh)': unit_rates[2],
-            'Standing Charge Elec (Day)': unit_rates[3],
+            'Unit Rate Gas (kWh)': gas_unit_rate,
+            'Standing Charge Gas (Day)': gas_standing_charge,
+            'Unit Rate Elec (kWh)': electricity_unit_rate_day,
+            'Standing Charge Elec (Day)': electricity_standing_charge,
             'Early Exit Fee': early_exit_fee,
             'Estimated Annual Cost': annual_cost,
-            'Is Fulfillable': is_fulfillable
+            'Is Fulfillable': is_fulfillable,
+            'Electricity Day Rate (p/kWh)': electricity_unit_rate_day,
+            'Electricity Night Rate (p/kWh)': electricity_unit_rate_night,
+            'Electricity Standing Charge (p/day)': electricity_standing_charge,
+            'Gas Rate (p/kWh)': gas_unit_rate,
+            'Gas Standing Charge (p/day)': gas_standing_charge
         })
 
     return pd.DataFrame(data_list)
+def get_data(key, tariff_data, default="N/A"):
+    if tariff_data is None:
+        return "No Data"
+    # This function fetches the value from tariff_data using the key
+    # and returns 'N/A' if the key doesn't exist or the value is None
+    value = tariff_data.get(key)
+    return value if value is not None else default
 
 def clear_existing_data(filepath):
     """ Clear the existing CSV file content before a new scrape. """
