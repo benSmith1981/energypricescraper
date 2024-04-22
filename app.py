@@ -548,13 +548,33 @@ def scrape_data(driver, postcode):
                 break
 
         # Extracting day and night rates for electricity
-        electricity_unit_rate_day = unit_rates[4] if len(unit_rates) >= 5 else 'Unknown'
-        electricity_unit_rate_night = unit_rates[5] if len(unit_rates) >= 6 else 'Unknown'
-        electricity_standing_charge = unit_rates[6] if len(unit_rates) >= 7 else 'Unknown'
+        electricity_unit_rate_day = 'Unknown'
+        electricity_unit_rate_night = 'Unknown'
+        electricity_standing_charge = 'Unknown'
+        gas_unit_rate = 'Unknown'
+        gas_standing_charge = 'Unknown'
 
-        # Extracting gas rates
-        gas_unit_rate = unit_rates[0]
-        gas_standing_charge = unit_rates[1]
+        if rates:
+            # Extracting day and night rates for electricity if available
+            electricity_unit_rate_day_elem = rates.find('div', class_='type-bold-sm', style='grid-area: unit-rate-value2;')
+            electricity_unit_rate_night_elem = rates.find('div', class_='type-bold-sm', style='grid-area: unit-rate-night-value2;')
+            electricity_standing_charge_elem = rates.find('div', class_='type-bold-sm', style='grid-area: standing-charge-value2;')
+
+            if electricity_unit_rate_day_elem:
+                electricity_unit_rate_day = electricity_unit_rate_day_elem.text
+            if electricity_unit_rate_night_elem:
+                electricity_unit_rate_night = electricity_unit_rate_night_elem.text
+            if electricity_standing_charge_elem:
+                electricity_standing_charge = electricity_standing_charge_elem.text
+
+            # Extracting gas rates
+            gas_unit_rate_elem = rates.find('div', class_='type-bold-sm', style='grid-area: unit-rate-value1;')
+            gas_standing_charge_elem = rates.find('div', class_='type-bold-sm', style='grid-area: standing-charge-value1;')
+
+            if gas_unit_rate_elem:
+                gas_unit_rate = gas_unit_rate_elem.text
+            if gas_standing_charge_elem:
+                gas_standing_charge = gas_standing_charge_elem.text
 
         # complete info
         data_list.append({
@@ -576,6 +596,8 @@ def scrape_data(driver, postcode):
         })
 
     return pd.DataFrame(data_list)
+
+
 def get_data(key, tariff_data, default="N/A"):
     if tariff_data is None:
         return "No Data"
