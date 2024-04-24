@@ -24,30 +24,31 @@
             for (var checkbox of checkboxes) {
                 selectedPostcodes.push(checkbox.value);
             }
-            scrapePostcodes(selectedPostcodes, 0); // Start scraping with the first postcode
+            var energy7Value = document.querySelector('input[name="energy7"]:checked').value; // Get the Energy 7 value
+            scrapePostcodes(selectedPostcodes, energy7Value, 0); // Pass Energy 7 value to the scrape function
         }
 
-        function scrapePostcodes(postcodes, index) {
+
+        function scrapePostcodes(postcodes, energy7, index) {
             if (index < postcodes.length) {
-                scrapePostcode(postcodes[index], () => {
-                    scrapePostcodes(postcodes, index + 1); // Callback to continue the next postcode
+                scrapePostcode(postcodes[index], energy7, () => {
+                    scrapePostcodes(postcodes, energy7, index + 1); // Continue passing Energy 7 value
                 });
             } else {
                 document.getElementById('status').innerHTML += '<p>All selected postcodes processed.</p>';
-                addDownloadButton(); // Add the download button only after all postcodes are processed
+                addDownloadButton();
                 populateDataTable();
             }
         }
 
-        
-        function scrapePostcode(postcode, callback) {
+        function scrapePostcode(postcode, energy7, callback) {
             document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
             fetch('/scrape', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({postcode: postcode})
+                body: JSON.stringify({postcode: postcode, energy7: energy7}) // Include the Energy 7 value in the POST data
             })
             .then(response => response.json())
             .then(data => {
@@ -59,7 +60,7 @@
             })
             .catch(error => {
                 document.getElementById('status').innerHTML += `<p>Error processing ${postcode}: ${error}</p>`;
-                callback(); // Proceed to the next postcode even if there's an error
+                callback(); // Continue even if there's an error
             });
         }
         function safeAccess(obj, key, defaultValue = '') {
@@ -128,10 +129,17 @@
             <input type="checkbox" name="postcodes" value="{{ code }}" checked>{{ code }}
         </label><br>
         {% endfor %}
-        <button type="button" onclick="selectAll()">Select All</button>
-        <button type="button" onclick="deselectAll()">Deselect All</button>
-        <button type="button" onclick="startScraping()">Scrape Selected Postcodes</button>
-        <button type="button" onclick="payBen()">Pay Ben Money</button>
+        <div>
+            <button type="button" onclick="selectAll()">Select All</button>
+            <button type="button" onclick="deselectAll()">Deselect All</button>
+            <button type="button" onclick="startScraping()">Scrape Selected Postcodes</button>
+            <button type="button" onclick="payBen()">Pay Ben Money</button>
+        </div>
+        <div>
+            <h2>Energy 7:</h2>
+            <label><input type="radio" name="energy7" value="Yes" checked>Yes</label>
+            <label><input type="radio" name="energy7" value="No">No</label>
+        </div>
 
     </div>
     <div id="status"></div>
