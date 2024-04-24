@@ -533,9 +533,6 @@ def scrape_data(driver, postcode, energy7):
     region = postcode_region_map.get(postcode, 'Unknown')
     fulfillable_data = extract_fulfillable_data(driver)
     
-    # Check the selected option for Energy 7
-    energy7_option = driver.find_element_by_css_selector('input[name="energy7"]:checked').get_attribute('value')
-
     data_list = []
     for index, card in enumerate(cards, start=1):
         company = card.find('span', class_='styles-module__titleStyles___2itRu').text.strip()
