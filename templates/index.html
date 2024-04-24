@@ -77,6 +77,9 @@
         }
 
         function startScraping() {
+            if (window.confirm("Do you want to clear all existing data before scraping?")) {
+                clearData();  // This will clear the data and needs to handle the continuation of scraping after clearing.
+            }
             var selectedPostcodes = [];
             var checkboxes = document.querySelectorAll('input[name="postcodes"]:checked');
             for (var checkbox of checkboxes) {
