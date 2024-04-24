@@ -558,8 +558,9 @@ def scrape_data(driver, postcode, energy7):
         electricity_standing_charge = unit_rates[6] if len(unit_rates) >= 7 else 'Unknown'
 
         # Extracting gas rates based on Energy 7 option
-        gas_unit_rate_day = unit_rates[0]
-        gas_unit_rate_night = unit_rates[1]
+        # Assuming new indices are found to be 2 for day and 3 for night rates
+        gas_unit_rate_day = unit_rates[2] if len(unit_rates) > 2 else 'Unknown'
+        gas_unit_rate_night = unit_rates[3] if len(unit_rates) > 3 else 'Unknown'
         gas_standing_charge = unit_rates[2]
 
         # Add data based on Energy 7 option
