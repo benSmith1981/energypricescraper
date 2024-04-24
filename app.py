@@ -439,95 +439,6 @@ def extract_fulfillable_data(driver):
     return fulfillable_data
 
 
-def extract_tariff_data(driver):
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
-    
-    # Find the script containing the required JSON state
-    for script in soup.find_all("script"):
-        if script.contents:
-            content = script.contents[0]  # Access the first item of contents
-            # Modified regex to capture until a semi-colon that seems to be a terminator of the JSON object
-            match = re.search(r'window.__initialState__=(.*?);</script>', content, re.DOTALL)
-            if match:
-                print(match)
-                print(content)
-                json_str = match.group(1)
-                print(json_str)  # Debug print to verify the JSON string
-                json_data = json.loads(json_str)
-
-                # Initialize a container for our extracted data
-                extracted_data = {
-                    "Electricity Day Rate": "N/A",
-                    "Electricity Night Rate": "N/A",
-                    "Electricity Standing Charge": "N/A",
-                    "Gas Rate": "N/A",
-                    "Gas Standing Charge": "N/A"
-                }
-
-                # Attempt to extract data based on JSON structure
-                plans = json_data.get("MultiComparison", {}).get("comparisonPlans", [])
-                for plan in plans:
-                    if plan.get("__typename") == "MultiComparisonPlan":
-                        elec = plan.get("electricity", {})
-                        gas = plan.get("gas", {})
-                        extracted_data["Electricity Day Rate"] = elec.get("dayRate", "N/A")
-                        extracted_data["Electricity Night Rate"] = elec.get("nightRate", "N/A")
-                        extracted_data["Electricity Standing Charge"] = elec.get("standingCharge", "N/A")
-                        extracted_data["Gas Rate"] = gas.get("rate", "N/A")
-                        extracted_data["Gas Standing Charge"] = gas.get("standingCharge", "N/A")
-                
-                return extracted_data
-            else:
-                print("No valid JSON state found in the scripts.")
-# def extract_tariff_data(driver):
-#     soup = BeautifulSoup(driver.page_source, 'html.parser')
-    
-#     # Find the script containing the required JSON state
-#     for script in soup.find_all("script"):
-#         if script.contents:
-#             content = script.contents[0]  # Access the first item of contents
-#             if 'window.__initialState__=' in content:
-#                 try:
-#                     # Extract the JSON object from the script
-#                     json_str = re.search(r'window.__initialState__=(\{.*?\});', content, re.DOTALL).group(1)
-#                     json_data = json.loads(json_str)
-#                     print(json_str)
-#                     # Initialize a container for our extracted data
-#                     extracted_data = {
-#                         "Electricity Day Rate": "N/A",
-#                         "Electricity Night Rate": "N/A",
-#                         "Electricity Standing Charge": "N/A",
-#                         "Gas Rate": "N/A",
-#                         "Gas Standing Charge": "N/A"
-#                     }
-
-#                     # Attempt to extract data based on JSON structure
-#                     plans = json_data["MultiComparison"]["comparisonPlans"]
-#                     for plan in plans:
-#                         if plan["__typename"] == "MultiComparisonPlan":
-#                             elec = plan["electricity"]
-#                             gas = plan["gas"]
-#                             extracted_data["Electricity Day Rate"] = next((rate["price"] for rate in elec["tariffRate"] if not rate["nightRate"]), "N/A")
-#                             extracted_data["Electricity Night Rate"] = next((rate["price"] for rate in elec["tariffRate"] if rate["nightRate"]), "N/A")
-#                             extracted_data["Electricity Standing Charge"] = elec["standingCharge"]
-#                             extracted_data["Gas Rate"] = next((rate["price"] for rate in gas["tariffRate"] if not rate["nightRate"]), "N/A")
-#                             extracted_data["Gas Standing Charge"] = gas["standingCharge"]
-#                     return extracted_data
-
-#                 except json.JSONDecodeError as e:
-#                     return {
-#                         "error": f"Error parsing JSON: {e}"
-#                     }
-#                 except KeyError as e:
-#                     return {
-#                         "error": f"Key error: {e}"
-#                     }
-
-#     return {
-#         "error": "No relevant script found"
-#     }
-
-
 def scrape_data(driver, postcode, energy7):
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     cards = soup.select('div.styles-module__resultCardWhole___cIuF2')
@@ -557,25 +468,20 @@ def scrape_data(driver, postcode, energy7):
 
         # Add data based on Energy 7 option
         if energy7 == 'Yes':
-            # Extracting day and night rates for electricity
-            # electricity_unit_rate_day = unit_rates[4] if len(unit_rates) >= 5 else 'Unknown'
-            # electricity_unit_rate_night = unit_rates[5] if len(unit_rates) >= 6 else 'Unknown'
-            # electricity_standing_charge = unit_rates[6] if len(unit_rates) >= 7 else 'Unknown'
-
-            # # Extracting gas rates based on Energy 7 option
-            # # Assuming new indices are found to be 2 for day and 3 for night rates
-            # gas_unit_rate_day = unit_rates[2] if len(unit_rates) > 2 else 'Unknown'
-            # gas_unit_rate_night = unit_rates[3] if len(unit_rates) > 3 else 'Unknown'
-            # gas_standing_charge = unit_rates[2]
-
             # Energy 7 Yes - extract day and night rates for both gas and electricity
-            electricity_unit_rate_day = unit_rates[1]  # Second position after header
-            electricity_unit_rate_night = unit_rates[2]  # Third position after header
-            electricity_standing_charge = unit_rates[3]  # Fourth position after header
-            gas_unit_rate_day = unit_rates[5]  # Second position after header in next column
-            gas_unit_rate_night = unit_rates[6]  # Third position after header in next column
-            gas_standing_charge = unit_rates[7]  # Fourth position after header in next column
+            # electricity_unit_rate_day = unit_rates[1]  # Second position after header
+            # electricity_unit_rate_night = unit_rates[2]  # Third position after header
+            # electricity_standing_charge = unit_rates[3]  # Fourth position after header
+            # gas_unit_rate_day = unit_rates[5]  # Second position after header in next column
+            # gas_unit_rate_night = unit_rates[6]  # Third position after header in next column
+            # gas_standing_charge = unit_rates[7]  # Fourth position after header in next column
 
+            gas_unit_rate_day = rates.select_one("div[style*='unit-rate-value1']").text.strip('p')
+            gas_unit_rate_night = rates.select_one("div[style*='unit-rate-night-value1']").text.strip('p')
+            gas_standing_charge = rates.select_one("div[style*='standing-charge-value1']").text.strip('p')
+            electricity_unit_rate_day = rates.select_one("div[style*='unit-rate-value2']").text.strip('p')
+            electricity_unit_rate_night = rates.select_one("div[style*='unit-rate-night-value2']").text.strip('p')
+            electricity_standing_charge = rates.select_one("div[style*='standing-charge-value2']").text.strip('p')
             # Complete info for Energy 7
             data_list.append({
                 'Region': region,
@@ -592,10 +498,15 @@ def scrape_data(driver, postcode, energy7):
                 'Gas Standing Charge (p/day)': gas_standing_charge
             })
         elif energy7 == 'No':
-            gas_unit_rate = unit_rates[0]  # First position
-            gas_standing_charge = unit_rates[1]  # Second position
-            electricity_unit_rate = unit_rates[2]  # Third position, first for electricity
-            electricity_standing_charge = unit_rates[3]  # Fourth position, second for electricity
+            # gas_unit_rate = unit_rates[0]  # First position
+            # gas_standing_charge = unit_rates[1]  # Second position
+            # electricity_unit_rate = unit_rates[2]  # Third position, first for electricity
+            # electricity_standing_charge = unit_rates[3]  # Fourth position, second for electricity
+
+            gas_unit_rate = rates.select_one("div[style*='unit-rate-value1']").text.strip('p')
+            gas_standing_charge = rates.select_one("div[style*='standing-charge-value1']").text.strip('p')
+            electricity_unit_rate = rates.select_one("div[style*='unit-rate-value2']").text.strip('p')
+            electricity_standing_charge = rates.select_one("div[style*='standing-charge-value2']").text.strip('p')
 
             data_list.append({
                 'Region': region,
