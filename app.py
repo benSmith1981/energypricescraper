@@ -528,7 +528,6 @@ def extract_tariff_data(driver):
 #     }
 
 
-
 def scrape_data(driver, postcode, energy7):
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     cards = soup.select('div.styles-module__resultCardWhole___cIuF2')
@@ -538,133 +537,87 @@ def scrape_data(driver, postcode, energy7):
     data_list = []
     for index, card in enumerate(cards, start=1):
         company = card.find('span', class_='styles-module__titleStyles___2itRu').text.strip()
-        rates_div = card.select_one('div.styles-module__chargesGridContainerStyle___F3ffm')
-
-        plan_props = json.loads(rates_div['data-nerd-props'])
-        plan_name = plan_props.get('element_text', 'Unknown')
-        is_fulfillable = fulfillable_data.get(plan_name, 'Unknown')
-
-        # Extracting the text directly for unit rates and standing charges
-        unit_rate_gas = rates_div.select_one(".type-bold-sm[style*='unit-rate-value1']").text.strip('p')
-        standing_charge_gas = rates_div.select_one(".type-bold-sm[style*='standing-charge-value1']").text.strip('p')
-        unit_rate_elec = rates_div.select_one(".type-bold-sm[style*='unit-rate-value2']").text.strip('p')
-        standing_charge_elec = rates_div.select_one(".type-bold-sm[style*='standing-charge-value2']").text.strip('p')
-        
+        rates = card.select_one('div.type-body-sm.styles-module__chargesGridContainerStyle___F3ffm')
+        unit_rates = [rate.text.strip('p') for rate in rates.find_all('div', class_='type-bold-sm')]
         early_exit_fee = card.select_one('div.styles-module__earlyExitFee___-Jc4E').text.split(': ')[1]
         annual_cost = card.select('div.styles-module__priceStyle___x0We9.type-heading-sm')[1].text.strip('£').replace(',', '')
 
-        entry = {
-            'Region': region,
-            'Ranking': index,
-            'Company': company,
-            'Early Exit Fee': early_exit_fee,
-            'Estimated Annual Cost': annual_cost,
-            'Is Fulfillable': is_fulfillable
-        }
+        # Extract plan name from data-nerd-props attribute JSON
+        plan_props = json.loads(rates['data-nerd-props'])
+        plan_name = plan_props.get('element_text', 'Unknown')
 
+        # Match plan name with fulfillable data
+        is_fulfillable = 'Unknown'
+        for name, fulfillable in fulfillable_data.items():
+            if plan_name in name or name in plan_name:
+                is_fulfillable = fulfillable
+                break
+
+
+
+        # Add data based on Energy 7 option
         if energy7 == 'Yes':
-            # Energy 7 is Yes, so expect day and night rates for both gas and electricity
-            unit_rate_gas_day = rates_div.select_one(".type-bold-sm[style*='unit-rate-value1']").text.strip('p')
-            unit_rate_gas_night = rates_div.select_one(".type-bold-sm[style*='unit-rate-night-value1']").text.strip('p')
-            unit_rate_elec_day = rates_div.select_one(".type-bold-sm[style*='unit-rate-value2']").text.strip('p')
-            unit_rate_elec_night = rates_div.select_one(".type-bold-sm[style*='unit-rate-night-value2']").text.strip('p')
+            # Extracting day and night rates for electricity
+            electricity_unit_rate_day = unit_rates[4] if len(unit_rates) >= 5 else 'Unknown'
+            electricity_unit_rate_night = unit_rates[5] if len(unit_rates) >= 6 else 'Unknown'
+            electricity_standing_charge = unit_rates[6] if len(unit_rates) >= 7 else 'Unknown'
 
-            entry.update({
-                'Unit Rate Gas (kWh) - Day': unit_rate_gas_day,
-                'Unit Rate Gas (kWh) - Night': unit_rate_gas_night,
-                'Standing Charge Gas (Day)': standing_charge_gas,
-                'Unit Rate Elec (kWh) - Day': unit_rate_elec_day,
-                'Unit Rate Elec (kWh) - Night': unit_rate_elec_night,
-                'Standing Charge Elec (Day)': standing_charge_elec
+            # Extracting gas rates based on Energy 7 option
+            # Assuming new indices are found to be 2 for day and 3 for night rates
+            gas_unit_rate_day = unit_rates[2] if len(unit_rates) > 2 else 'Unknown'
+            gas_unit_rate_night = unit_rates[3] if len(unit_rates) > 3 else 'Unknown'
+            gas_standing_charge = unit_rates[2]
+            
+            # Complete info for Energy 7
+            data_list.append({
+                'Region': region,
+                'Ranking': index,
+                'Company': company,
+                'Unit Rate Gas (kWh) - Day': gas_unit_rate_day,
+                'Unit Rate Gas (kWh) - Night': gas_unit_rate_night,
+                'Standing Charge Gas (Day)': gas_standing_charge,
+                'Unit Rate Elec (kWh)': electricity_unit_rate_day,
+                'Standing Charge Elec (Day)': electricity_standing_charge,
+                'Early Exit Fee': early_exit_fee,
+                'Estimated Annual Cost': annual_cost,
+                'Is Fulfillable': is_fulfillable,
+                'Electricity Day Rate (p/kWh)': electricity_unit_rate_day,
+                'Electricity Night Rate (p/kWh)': electricity_unit_rate_night,
+                'Electricity Standing Charge (p/day)': electricity_standing_charge,
+                'Gas Rate (p/kWh) - Day': gas_unit_rate_day,
+                'Gas Rate (p/kWh) - Night': gas_unit_rate_night,
+                'Gas Standing Charge (p/day)': gas_standing_charge
             })
-        else:
-            # Energy 7 is No, so expect one rate and one standing charge for gas and electricity
-            entry.update({
-                'Unit Rate Gas (kWh)': unit_rate_gas,
-                'Standing Charge Gas (Day)': standing_charge_gas,
-                'Unit Rate Elec (kWh)': unit_rate_elec,
-                'Standing Charge Elec (Day)': standing_charge_elec
+        elif energy7 == 'No':
+            data_list.append({
+                'Region': region,
+                'Ranking': index,
+                'Company': company,
+                'Unit Rate Gas (kWh)': unit_rates[0],
+                'Standing Charge Gas (Day)': unit_rates[1],
+                'Unit Rate Elec (kWh)': unit_rates[2],
+                'Standing Charge Elec (Day)': unit_rates[3],
+                'Early Exit Fee': early_exit_fee,
+                'Estimated Annual Cost': annual_cost,
+                'Is Fulfillable': is_fulfillable
             })
-
-        data_list.append(entry)
+            # Add data without detailed rates for Energy 7
+            # data_list.append({
+            #     'Region': region,
+            #     'Ranking': index,
+            #     'Company': company,
+            #     'Unit Rate Gas (kWh)': gas_unit_rate_day,
+            #     'Standing Charge Gas (Day)': gas_standing_charge,
+            #     'Unit Rate Elec (kWh)': electricity_unit_rate_day,
+            #     'Standing Charge Elec (Day)': electricity_standing_charge,
+            #     # 'Unit Rate Gas (kWh)': gas_unit_rate_day,
+            #     # 'Standing Charge Gas (Day)': gas_standing_charge,
+            #     'Early Exit Fee': early_exit_fee,
+            #     'Estimated Annual Cost': annual_cost,
+            #     'Is Fulfillable': is_fulfillable,
+            # })
 
     return pd.DataFrame(data_list)
-# def scrape_data(driver, postcode, energy7):
-#     soup = BeautifulSoup(driver.page_source, 'html.parser')
-#     cards = soup.select('div.styles-module__resultCardWhole___cIuF2')
-#     region = postcode_region_map.get(postcode, 'Unknown')
-#     fulfillable_data = extract_fulfillable_data(driver)
-    
-#     data_list = []
-#     for index, card in enumerate(cards, start=1):
-#         company = card.find('span', class_='styles-module__titleStyles___2itRu').text.strip()
-#         rates = card.select_one('div.type-body-sm.styles-module__chargesGridContainerStyle___F3ffm')
-#         unit_rates = [rate.text.strip('p') for rate in rates.find_all('div', class_='type-bold-sm')]
-#         early_exit_fee = card.select_one('div.styles-module__earlyExitFee___-Jc4E').text.split(': ')[1]
-#         annual_cost = card.select('div.styles-module__priceStyle___x0We9.type-heading-sm')[1].text.strip('£').replace(',', '')
-
-#         # Extract plan name from data-nerd-props attribute JSON
-#         plan_props = json.loads(rates['data-nerd-props'])
-#         plan_name = plan_props.get('element_text', 'Unknown')
-
-#         # Match plan name with fulfillable data
-#         is_fulfillable = 'Unknown'
-#         for name, fulfillable in fulfillable_data.items():
-#             if plan_name in name or name in plan_name:
-#                 is_fulfillable = fulfillable
-#                 break
-
-#         # Extracting day and night rates for electricity
-#         electricity_unit_rate_day = unit_rates[4] if len(unit_rates) >= 5 else 'Unknown'
-#         electricity_unit_rate_night = unit_rates[5] if len(unit_rates) >= 6 else 'Unknown'
-#         electricity_standing_charge = unit_rates[6] if len(unit_rates) >= 7 else 'Unknown'
-
-#         # Extracting gas rates based on Energy 7 option
-#         # Assuming new indices are found to be 2 for day and 3 for night rates
-#         gas_unit_rate_day = unit_rates[2] if len(unit_rates) > 2 else 'Unknown'
-#         gas_unit_rate_night = unit_rates[3] if len(unit_rates) > 3 else 'Unknown'
-#         gas_standing_charge = unit_rates[2]
-
-#         # Add data based on Energy 7 option
-#         if energy7 == 'Yes':
-#             # Complete info for Energy 7
-#             data_list.append({
-#                 'Region': region,
-#                 'Ranking': index,
-#                 'Company': company,
-#                 'Unit Rate Gas (kWh) - Day': gas_unit_rate_day,
-#                 'Unit Rate Gas (kWh) - Night': gas_unit_rate_night,
-#                 'Standing Charge Gas (Day)': gas_standing_charge,
-#                 'Unit Rate Elec (kWh)': electricity_unit_rate_day,
-#                 'Standing Charge Elec (Day)': electricity_standing_charge,
-#                 'Early Exit Fee': early_exit_fee,
-#                 'Estimated Annual Cost': annual_cost,
-#                 'Is Fulfillable': is_fulfillable,
-#                 'Electricity Day Rate (p/kWh)': electricity_unit_rate_day,
-#                 'Electricity Night Rate (p/kWh)': electricity_unit_rate_night,
-#                 'Electricity Standing Charge (p/day)': electricity_standing_charge,
-#                 'Gas Rate (p/kWh) - Day': gas_unit_rate_day,
-#                 'Gas Rate (p/kWh) - Night': gas_unit_rate_night,
-#                 'Gas Standing Charge (p/day)': gas_standing_charge
-#             })
-#         elif energy7 == 'No':
-#             # Add data without detailed rates for Energy 7
-#             data_list.append({
-#                 'Region': region,
-#                 'Ranking': index,
-#                 'Company': company,
-#                 'Unit Rate Gas (kWh)': gas_unit_rate_day,
-#                 'Standing Charge Gas (Day)': gas_standing_charge,
-#                 'Unit Rate Elec (kWh)': electricity_unit_rate_day,
-#                 'Standing Charge Elec (Day)': electricity_standing_charge,
-#                 # 'Unit Rate Gas (kWh)': gas_unit_rate_day,
-#                 # 'Standing Charge Gas (Day)': gas_standing_charge,
-#                 'Early Exit Fee': early_exit_fee,
-#                 'Estimated Annual Cost': annual_cost,
-#                 'Is Fulfillable': is_fulfillable,
-#             })
-
-#     return pd.DataFrame(data_list)
 
 
 # def scrape_data(driver, postcode):
