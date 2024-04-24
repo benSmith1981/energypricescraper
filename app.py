@@ -558,15 +558,23 @@ def scrape_data(driver, postcode, energy7):
         # Add data based on Energy 7 option
         if energy7 == 'Yes':
             # Extracting day and night rates for electricity
-            electricity_unit_rate_day = unit_rates[4] if len(unit_rates) >= 5 else 'Unknown'
-            electricity_unit_rate_night = unit_rates[5] if len(unit_rates) >= 6 else 'Unknown'
-            electricity_standing_charge = unit_rates[6] if len(unit_rates) >= 7 else 'Unknown'
+            # electricity_unit_rate_day = unit_rates[4] if len(unit_rates) >= 5 else 'Unknown'
+            # electricity_unit_rate_night = unit_rates[5] if len(unit_rates) >= 6 else 'Unknown'
+            # electricity_standing_charge = unit_rates[6] if len(unit_rates) >= 7 else 'Unknown'
 
-            # Extracting gas rates based on Energy 7 option
-            # Assuming new indices are found to be 2 for day and 3 for night rates
-            gas_unit_rate_day = unit_rates[2] if len(unit_rates) > 2 else 'Unknown'
-            gas_unit_rate_night = unit_rates[3] if len(unit_rates) > 3 else 'Unknown'
-            gas_standing_charge = unit_rates[2]
+            # # Extracting gas rates based on Energy 7 option
+            # # Assuming new indices are found to be 2 for day and 3 for night rates
+            # gas_unit_rate_day = unit_rates[2] if len(unit_rates) > 2 else 'Unknown'
+            # gas_unit_rate_night = unit_rates[3] if len(unit_rates) > 3 else 'Unknown'
+            # gas_standing_charge = unit_rates[2]
+
+            # Energy 7 Yes - extract day and night rates for both gas and electricity
+            electricity_unit_rate_day = unit_rates[1]  # Second position after header
+            electricity_unit_rate_night = unit_rates[2]  # Third position after header
+            electricity_standing_charge = unit_rates[3]  # Fourth position after header
+            gas_unit_rate_day = unit_rates[5]  # Second position after header in next column
+            gas_unit_rate_night = unit_rates[6]  # Third position after header in next column
+            gas_standing_charge = unit_rates[7]  # Fourth position after header in next column
 
             # Complete info for Energy 7
             data_list.append({
@@ -584,33 +592,24 @@ def scrape_data(driver, postcode, energy7):
                 'Gas Standing Charge (p/day)': gas_standing_charge
             })
         elif energy7 == 'No':
+            gas_unit_rate = unit_rates[0]  # First position
+            gas_standing_charge = unit_rates[1]  # Second position
+            electricity_unit_rate = unit_rates[2]  # Third position, first for electricity
+            electricity_standing_charge = unit_rates[3]  # Fourth position, second for electricity
+
             data_list.append({
                 'Region': region,
                 'Ranking': index,
                 'Company': company,
-                'Unit Rate Gas (kWh)': unit_rates[0],
-                'Standing Charge Gas (Day)': unit_rates[1],
-                'Unit Rate Elec (kWh)': unit_rates[2],
-                'Standing Charge Elec (Day)': unit_rates[3],
+                'Unit Rate Gas (kWh)': gas_unit_rate,
+                'Standing Charge Gas': gas_standing_charge,
+                'Unit Rate Elec (kWh)': electricity_unit_rate,
+                'Standing Charge Elec': electricity_standing_charge,
                 'Early Exit Fee': early_exit_fee,
                 'Estimated Annual Cost': annual_cost,
                 'Is Fulfillable': is_fulfillable
             })
-            # Add data without detailed rates for Energy 7
-            # data_list.append({
-            #     'Region': region,
-            #     'Ranking': index,
-            #     'Company': company,
-            #     'Unit Rate Gas (kWh)': gas_unit_rate_day,
-            #     'Standing Charge Gas (Day)': gas_standing_charge,
-            #     'Unit Rate Elec (kWh)': electricity_unit_rate_day,
-            #     'Standing Charge Elec (Day)': electricity_standing_charge,
-            #     # 'Unit Rate Gas (kWh)': gas_unit_rate_day,
-            #     # 'Standing Charge Gas (Day)': gas_standing_charge,
-            #     'Early Exit Fee': early_exit_fee,
-            #     'Estimated Annual Cost': annual_cost,
-            #     'Is Fulfillable': is_fulfillable,
-            # })
+ 
 
     return pd.DataFrame(data_list)
 
