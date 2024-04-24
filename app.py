@@ -476,7 +476,7 @@ def scrape_data(driver, postcode, energy7, gas):
             electricity_unit_rate_night = rates.select_one("div[style*='unit-rate-night-value2']").text.strip('p')
             electricity_standing_charge = rates.select_one("div[style*='standing-charge-value2']").text.strip('p')
             # Complete info for Energy 7
-            if gas:
+            if gas == 'Yes':
                 # Energy 7 Yes - extract day and night rates for gas as well
                 gas_unit_rate_day = rates.select_one("div[style*='unit-rate-value1']").text.strip('p')
                 gas_unit_rate_night = rates.select_one("div[style*='unit-rate-night-value1']").text.strip('p')
@@ -508,7 +508,7 @@ def scrape_data(driver, postcode, energy7, gas):
                     'Electricity Standing Charge (p/day)': electricity_standing_charge
                 })
         elif energy7 == 'No':
-            if gas: #yes to gas
+            if gas == 'Yes': #yes to gas
                 gas_unit_rate = rates.select_one("div[style*='unit-rate-value1']").text.strip('p')
                 gas_standing_charge = rates.select_one("div[style*='standing-charge-value1']").text.strip('p')
                 electricity_unit_rate = rates.select_one("div[style*='unit-rate-value2']").text.strip('p')
