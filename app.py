@@ -567,17 +567,12 @@ def scrape_data(driver, postcode, energy7):
             gas_unit_rate_day = unit_rates[2] if len(unit_rates) > 2 else 'Unknown'
             gas_unit_rate_night = unit_rates[3] if len(unit_rates) > 3 else 'Unknown'
             gas_standing_charge = unit_rates[2]
-            
+
             # Complete info for Energy 7
             data_list.append({
                 'Region': region,
                 'Ranking': index,
                 'Company': company,
-                'Unit Rate Gas (kWh) - Day': gas_unit_rate_day,
-                'Unit Rate Gas (kWh) - Night': gas_unit_rate_night,
-                'Standing Charge Gas (Day)': gas_standing_charge,
-                'Unit Rate Elec (kWh)': electricity_unit_rate_day,
-                'Standing Charge Elec (Day)': electricity_standing_charge,
                 'Early Exit Fee': early_exit_fee,
                 'Estimated Annual Cost': annual_cost,
                 'Is Fulfillable': is_fulfillable,
@@ -715,7 +710,7 @@ def data():
 
 @app.route('/')
 def index():
-    # clear_existing_data(all_data_path)
+    clear_existing_data(all_data_path)
     postcodes = [
         "NR26 8PH", "LE4 5GH", "DA16 3RQ", "WA13 0TS",
         "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
