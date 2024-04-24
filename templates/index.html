@@ -94,7 +94,7 @@
 
         function scrapePostcodes(postcodes, energy7, gas, index) {
             if (index < postcodes.length) {
-                scrapePostcode(postcodes[index], energy7,  () => {
+                scrapePostcode(postcodes[index], energy7,gas,  () => {
                     scrapePostcodes(postcodes, energy7, gas, index + 1); // Continue passing Energy 7 value
                 });
             } else {
@@ -107,6 +107,7 @@
         }
 
         function scrapePostcode(postcode, energy7, gas, callback) {
+            console.log(gas);
             document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
             fetch('/scrape', {
                 method: 'POST',
