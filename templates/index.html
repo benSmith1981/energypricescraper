@@ -178,9 +178,7 @@
             .then(response => response.json())
             .then(data => {
                 // document.getElementById('status').innerHTML += `<p>${data.message}</p>`;
-                if (data.filepath) {
-                    document.getElementById('status').innerHTML += `<p>Data Cleared from CSV</p>`;
-                }
+                document.getElementById('status').innerHTML += `<p>Data Cleared from CSV</p>`;
                 callback(); // Proceed to the next postcode
             })
             .catch(error => {

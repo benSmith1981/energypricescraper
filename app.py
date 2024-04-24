@@ -706,7 +706,7 @@ def index():
     # clear_existing_data(all_data_path)
     return render_template('index.html', postcodes=postcodes)
 
-@app.route('/cleardata')
+@app.route('/cleardata', methods=['POST'])
 def cleardata():
     clear_existing_data(all_data_path)
 
