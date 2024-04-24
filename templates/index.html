@@ -86,14 +86,16 @@
                 selectedPostcodes.push(checkbox.value);
             }
             var energy7Value = document.querySelector('input[name="energy7"]:checked').value; // Get the Energy 7 value
-            scrapePostcodes(selectedPostcodes, energy7Value, 0); // Pass Energy 7 value to the scrape function
+            var gas = document.querySelector('input[name="gas"]:checked').value; // Get the Energy 7 value
+
+            scrapePostcodes(selectedPostcodes, energy7Value,gas, 0); // Pass Energy 7 value to the scrape function
         }
 
 
-        function scrapePostcodes(postcodes, energy7, index) {
+        function scrapePostcodes(postcodes, energy7, gas, index) {
             if (index < postcodes.length) {
-                scrapePostcode(postcodes[index], energy7, () => {
-                    scrapePostcodes(postcodes, energy7, index + 1); // Continue passing Energy 7 value
+                scrapePostcode(postcodes[index], energy7,  () => {
+                    scrapePostcodes(postcodes, energy7, gas, index + 1); // Continue passing Energy 7 value
                 });
             } else {
                 document.getElementById('status').innerHTML += '<p>All selected postcodes processed.</p>';
@@ -104,14 +106,14 @@
             }
         }
 
-        function scrapePostcode(postcode, energy7, callback) {
+        function scrapePostcode(postcode, energy7, gas, callback) {
             document.getElementById('status').innerHTML += `<p>Processing ${postcode}...</p>`;
             fetch('/scrape', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({postcode: postcode, energy7: energy7}) // Include the Energy 7 value in the POST data
+                body: JSON.stringify({postcode: postcode, energy7: energy7, gas: gas}) // Include the Energy 7 value and gas in the POST data
             })
             .then(response => response.json())
             .then(data => {
@@ -221,6 +223,11 @@
             <h2>Energy 7:</h2>
             <label><input type="radio" name="energy7" value="Yes" checked>Yes</label>
             <label><input type="radio" name="energy7" value="No">No</label>
+        </div>
+        <div>
+            <h2>Gas</h2>
+            <label><input type="radio" name="gas" value="Yes" checked>Yes</label>
+            <label><input type="radio" name="gas" value="No">No</label>
         </div>
 
     </div>

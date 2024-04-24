@@ -70,7 +70,7 @@ def click_radio_button_by_text(driver, text):
     except Exception as e:
         print(f"Failed to click radio button with text '{text}': {e}")
 
-def navigate_and_scrape(url, postcode,energy7):
+def navigate_and_scrape(url, postcode,energy7, gas):
     driver = setup_driver()
     # clear_cache(driver)  # Clear cache before navigating to the URL
     driver.get(url)
@@ -215,7 +215,10 @@ def navigate_and_scrape(url, postcode,energy7):
                         return None
                     
                     # Do you use gas? Wait for the label associated with the 'Yes' option to be clickable and click it
-                    click_radio_button_by_text(driver, "Yes")
+                    if gas == "Yes":
+                        click_radio_button_by_text(driver, "Yes")
+                    else:
+                        click_radio_button_by_text(driver, "No")
                     # try:
                     #     # Do you use gas? Wait for the label associated with the 'Yes' option to be clickable and click it
                     #     WebDriverWait(driver, 2).until(
@@ -390,7 +393,7 @@ def navigate_and_scrape(url, postcode,energy7):
     except Exception as e:
         print("Failed to click See more results button:", e)
 
-    data = scrape_data(driver,postcode,energy7)
+    data = scrape_data(driver,postcode,energy7, gas)
     driver.quit()
     if data is not None:
         data.to_csv('/tmp/scraped_data.csv', index=False)  # Save to temporary file
@@ -439,7 +442,7 @@ def extract_fulfillable_data(driver):
     return fulfillable_data
 
 
-def scrape_data(driver, postcode, energy7):
+def scrape_data(driver, postcode, energy7,gas):
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     cards = soup.select('div.styles-module__resultCardWhole___cIuF2')
     region = postcode_region_map.get(postcode, 'Unknown')
@@ -449,7 +452,6 @@ def scrape_data(driver, postcode, energy7):
     for index, card in enumerate(cards, start=1):
         company = card.find('span', class_='styles-module__titleStyles___2itRu').text.strip()
         rates = card.select_one('div.type-body-sm.styles-module__chargesGridContainerStyle___F3ffm')
-        unit_rates = [rate.text.strip('p') for rate in rates.find_all('div', class_='type-bold-sm')]
         early_exit_fee = card.select_one('div.styles-module__earlyExitFee___-Jc4E').text.split(': ')[1]
         annual_cost = card.select('div.styles-module__priceStyle___x0We9.type-heading-sm')[1].text.strip('£').replace(',', '')
 
@@ -463,124 +465,79 @@ def scrape_data(driver, postcode, energy7):
             if plan_name in name or name in plan_name:
                 is_fulfillable = fulfillable
                 break
-
-
-
         # Add data based on Energy 7 option
         if energy7 == 'Yes':
-            # Energy 7 Yes - extract day and night rates for both gas and electricity
-            # electricity_unit_rate_day = unit_rates[1]  # Second position after header
-            # electricity_unit_rate_night = unit_rates[2]  # Third position after header
-            # electricity_standing_charge = unit_rates[3]  # Fourth position after header
-            # gas_unit_rate_day = unit_rates[5]  # Second position after header in next column
-            # gas_unit_rate_night = unit_rates[6]  # Third position after header in next column
-            # gas_standing_charge = unit_rates[7]  # Fourth position after header in next column
-
-            gas_unit_rate_day = rates.select_one("div[style*='unit-rate-value1']").text.strip('p')
-            gas_unit_rate_night = rates.select_one("div[style*='unit-rate-night-value1']").text.strip('p')
-            gas_standing_charge = rates.select_one("div[style*='standing-charge-value1']").text.strip('p')
+            # Energy 7 Yes - extract day and night rates for electricity
             electricity_unit_rate_day = rates.select_one("div[style*='unit-rate-value2']").text.strip('p')
             electricity_unit_rate_night = rates.select_one("div[style*='unit-rate-night-value2']").text.strip('p')
             electricity_standing_charge = rates.select_one("div[style*='standing-charge-value2']").text.strip('p')
             # Complete info for Energy 7
-            data_list.append({
-                'Region': region,
-                'Ranking': index,
-                'Company': company,
-                'Early Exit Fee': early_exit_fee,
-                'Estimated Annual Cost': annual_cost,
-                'Is Fulfillable': is_fulfillable,
-                'Electricity Day Rate (p/kWh)': electricity_unit_rate_day,
-                'Electricity Night Rate (p/kWh)': electricity_unit_rate_night,
-                'Electricity Standing Charge (p/day)': electricity_standing_charge,
-                'Gas Rate (p/kWh) - Day': gas_unit_rate_day,
-                'Gas Rate (p/kWh) - Night': gas_unit_rate_night,
-                'Gas Standing Charge (p/day)': gas_standing_charge
-            })
+            if gas:
+                # Energy 7 Yes - extract day and night rates for gas as well
+                gas_unit_rate_day = rates.select_one("div[style*='unit-rate-value1']").text.strip('p')
+                gas_unit_rate_night = rates.select_one("div[style*='unit-rate-night-value1']").text.strip('p')
+                gas_standing_charge = rates.select_one("div[style*='standing-charge-value1']").text.strip('p')
+                data_list.append({
+                    'Region': region,
+                    'Ranking': index,
+                    'Company': company,
+                    'Early Exit Fee': early_exit_fee,
+                    'Estimated Annual Cost': annual_cost,
+                    'Is Fulfillable': is_fulfillable,
+                    'Electricity Day Rate (p/kWh)': electricity_unit_rate_day,
+                    'Electricity Night Rate (p/kWh)': electricity_unit_rate_night,
+                    'Electricity Standing Charge (p/day)': electricity_standing_charge,
+                    'Gas Rate (p/kWh) - Day': gas_unit_rate_day,
+                    'Gas Rate (p/kWh) - Night': gas_unit_rate_night,
+                    'Gas Standing Charge (p/day)': gas_standing_charge
+                })
+            else:
+                data_list.append({
+                    'Region': region,
+                    'Ranking': index,
+                    'Company': company,
+                    'Early Exit Fee': early_exit_fee,
+                    'Estimated Annual Cost': annual_cost,
+                    'Is Fulfillable': is_fulfillable,
+                    'Electricity Day Rate (p/kWh)': electricity_unit_rate_day,
+                    'Electricity Night Rate (p/kWh)': electricity_unit_rate_night,
+                    'Electricity Standing Charge (p/day)': electricity_standing_charge
+                })
         elif energy7 == 'No':
-            # gas_unit_rate = unit_rates[0]  # First position
-            # gas_standing_charge = unit_rates[1]  # Second position
-            # electricity_unit_rate = unit_rates[2]  # Third position, first for electricity
-            # electricity_standing_charge = unit_rates[3]  # Fourth position, second for electricity
-
-            gas_unit_rate = rates.select_one("div[style*='unit-rate-value1']").text.strip('p')
-            gas_standing_charge = rates.select_one("div[style*='standing-charge-value1']").text.strip('p')
-            electricity_unit_rate = rates.select_one("div[style*='unit-rate-value2']").text.strip('p')
-            electricity_standing_charge = rates.select_one("div[style*='standing-charge-value2']").text.strip('p')
-
-            data_list.append({
-                'Region': region,
-                'Ranking': index,
-                'Company': company,
-                'Unit Rate Gas (kWh)': gas_unit_rate,
-                'Standing Charge Gas': gas_standing_charge,
-                'Unit Rate Elec (kWh)': electricity_unit_rate,
-                'Standing Charge Elec': electricity_standing_charge,
-                'Early Exit Fee': early_exit_fee,
-                'Estimated Annual Cost': annual_cost,
-                'Is Fulfillable': is_fulfillable
-            })
+            if gas: #yes to gas
+                gas_unit_rate = rates.select_one("div[style*='unit-rate-value1']").text.strip('p')
+                gas_standing_charge = rates.select_one("div[style*='standing-charge-value1']").text.strip('p')
+                electricity_unit_rate = rates.select_one("div[style*='unit-rate-value2']").text.strip('p')
+                electricity_standing_charge = rates.select_one("div[style*='standing-charge-value2']").text.strip('p')
+                data_list.append({
+                        'Region': region,
+                        'Ranking': index,
+                        'Company': company,
+                        'Unit Rate Gas (kWh)': gas_unit_rate,
+                        'Standing Charge Gas': gas_standing_charge,
+                        'Unit Rate Elec (kWh)': electricity_unit_rate,
+                        'Standing Charge Elec': electricity_standing_charge,
+                        'Early Exit Fee': early_exit_fee,
+                        'Estimated Annual Cost': annual_cost,
+                        'Is Fulfillable': is_fulfillable
+                    })
+            else: #said no to gas
+                electricity_unit_rate = rates.select_one("div[style*='unit-rate-value2']").text.strip('p')
+                electricity_standing_charge = rates.select_one("div[style*='standing-charge-value2']").text.strip('p')
+                data_list.append({
+                    'Region': region,
+                    'Ranking': index,
+                    'Company': company,
+                    'Unit Rate Elec (kWh)': electricity_unit_rate,
+                    'Standing Charge Elec': electricity_standing_charge,
+                    'Early Exit Fee': early_exit_fee,
+                    'Estimated Annual Cost': annual_cost,
+                    'Is Fulfillable': is_fulfillable
+                })
  
 
     return pd.DataFrame(data_list)
 
-
-# def scrape_data(driver, postcode):
-#     soup = BeautifulSoup(driver.page_source, 'html.parser')
-#     cards = soup.select('div.styles-module__resultCardWhole___cIuF2')
-#     region = postcode_region_map.get(postcode, 'Unknown')
-#     fulfillable_data = extract_fulfillable_data(driver)
-#     # tariff_data = extract_tariff_data(driver)
-#     # print("tariff_data ${tariff_data}")
-
-#     data_list = []
-#     for index, card in enumerate(cards, start=1):
-#         company = card.find('span', class_='styles-module__titleStyles___2itRu').text.strip()
-#         rates = card.select_one('div.type-body-sm.styles-module__chargesGridContainerStyle___F3ffm')
-#         unit_rates = [rate.text.strip('p') for rate in rates.find_all('div', class_='type-bold-sm')]
-#         early_exit_fee = card.select_one('div.styles-module__earlyExitFee___-Jc4E').text.split(': ')[1]
-#         annual_cost = card.select('div.styles-module__priceStyle___x0We9.type-heading-sm')[1].text.strip('£').replace(',', '')
-
-#         # Extract plan name from data-nerd-props attribute JSON
-#         plan_props = json.loads(rates['data-nerd-props'])
-#         plan_name = plan_props.get('element_text', 'Unknown')
-
-#         # Match plan name with fulfillable data
-#         is_fulfillable = 'Unknown'
-#         for name, fulfillable in fulfillable_data.items():
-#             if plan_name in name or name in plan_name:
-#                 is_fulfillable = fulfillable
-#                 break
-
-#         # Extracting day and night rates for electricity
-#         electricity_unit_rate_day = unit_rates[4] if len(unit_rates) >= 5 else 'Unknown'
-#         electricity_unit_rate_night = unit_rates[5] if len(unit_rates) >= 6 else 'Unknown'
-#         electricity_standing_charge = unit_rates[6] if len(unit_rates) >= 7 else 'Unknown'
-
-#         # Extracting gas rates
-#         gas_unit_rate = unit_rates[0]
-#         gas_standing_charge = unit_rates[1]
-
-#         # complete info
-#         data_list.append({
-#             'Region': region,
-#             'Ranking': index,
-#             'Company': company,
-            # 'Unit Rate Gas (kWh)': gas_unit_rate,
-            # 'Standing Charge Gas (Day)': gas_standing_charge,
-            # 'Unit Rate Elec (kWh)': electricity_unit_rate_day,
-            # 'Standing Charge Elec (Day)': electricity_standing_charge,
-#             'Early Exit Fee': early_exit_fee,
-#             'Estimated Annual Cost': annual_cost,
-#             'Is Fulfillable': is_fulfillable,
-#             'Electricity Day Rate (p/kWh)': electricity_unit_rate_day,
-#             'Electricity Night Rate (p/kWh)': electricity_unit_rate_night,
-#             'Electricity Standing Charge (p/day)': electricity_standing_charge,
-#             'Gas Rate (p/kWh)': gas_unit_rate,
-#             'Gas Standing Charge (p/day)': gas_standing_charge
-#         })
-
-#     return pd.DataFrame(data_list)
 def get_data(key, tariff_data, default="N/A"):
     if tariff_data is None:
         return "No Data"
@@ -639,9 +596,11 @@ def scrape():
     data = request.get_json()
     postcode = data['postcode']
     energy7 = data['energy7']  # Capture the Energy 7 value
+    gas = data['gas']  # Capture the Energy 7 value
+
     url = "https://www.uswitch.com/"
     # Perform scraping
-    scraped_data = navigate_and_scrape(url, postcode, energy7)  # Assume you modify this function to use `energy7`
+    scraped_data = navigate_and_scrape(url, postcode, energy7, gas)  # Assume you modify this function to use `energy7`
     if scraped_data is not None:
         # Define filepath for combined data
         filepath = all_data_path
