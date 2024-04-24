@@ -442,7 +442,7 @@ def extract_fulfillable_data(driver):
     return fulfillable_data
 
 
-def scrape_data(driver, postcode, energy7,gas):
+def scrape_data(driver, postcode, energy7, gas):
     soup = BeautifulSoup(driver.page_source, 'html.parser')
     cards = soup.select('div.styles-module__resultCardWhole___cIuF2')
     region = postcode_region_map.get(postcode, 'Unknown')
@@ -465,6 +465,10 @@ def scrape_data(driver, postcode, energy7,gas):
             if plan_name in name or name in plan_name:
                 is_fulfillable = fulfillable
                 break
+
+        print(f"gas: ${gas}")
+        print(f"energy7: ${energy7}")
+
         # Add data based on Energy 7 option
         if energy7 == 'Yes':
             # Energy 7 Yes - extract day and night rates for electricity
@@ -557,16 +561,6 @@ def save_scraped_data(dataframe, filepath):
         dataframe.to_csv(filepath, mode='a', header=False, index=False)
     else:
         dataframe.to_csv(filepath, index=False)
-
-def scrape_and_save_data(postcodes, url, filepath):
-    """Scrape data for a list of postcodes and save to a CSV file."""
-    combined_data = pd.DataFrame()  # Initialize an empty DataFrame
-    for postcode in postcodes:
-        scraped_data = navigate_and_scrape(url, postcode)
-        if scraped_data is not None:
-            combined_data = pd.concat([combined_data, scraped_data], ignore_index=True)
-    save_scraped_data(combined_data, filepath)
-    return combined_data
 
 @app.route('/data', methods=['GET'])
 def data():
