@@ -696,7 +696,7 @@ def data():
 
 @app.route('/')
 def index():
-    clear_existing_data(all_data_path)
+    # clear_existing_data(all_data_path)
     postcodes = [
         "NR26 8PH", "LE4 5GH", "DA16 3RQ", "WA13 0TS",
         "B13 0TY", "YO26 4YG", "CA2 6TR", "AB11 7UR",
@@ -706,6 +706,9 @@ def index():
     # clear_existing_data(all_data_path)
     return render_template('index.html', postcodes=postcodes)
 
+@app.route('/cleardata')
+def cleardata():
+    clear_existing_data(all_data_path)
 
 @app.route('/scrape', methods=['POST'])
 def scrape():
